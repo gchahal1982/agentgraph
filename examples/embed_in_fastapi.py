@@ -1,26 +1,18 @@
-"""Embed the runtime in a FastAPI app and run a vertical."""
-import uvicorn
+"""Serve a single vertical behind its own FastAPI app.
 
-from agentgraph_sales_ops import SalesOpsService
+This uses the vertical's built-in service entrypoint, which exposes the
+vertical's graphs over HTTP. Configure the model with AG_LLM_PROVIDER /
+AG_LLM_MODEL and the provider key, and protect the API with AG_API_KEY.
+
+    uv run --all-packages python examples/embed_in_fastapi.py
+"""
+import uvicorn
+from agentgraph_sales_ops.service import SalesOpsService, _build_app
 
 
 def main() -> None:
     svc = SalesOpsService.default()
-    app = svc.build_app()  # type: ignore[attr-defined]
-    # The vertical Service provides a default FastAPI app; we extend it
-    # with a /run/lead route.
-    from fastapi import HTTPException
-    from pydantic import BaseModel
-
-    class Body(BaseModel):
-        contact_email: str
-
-    @app.post("/run/lead")
-    async def run_lead(body: Body) -> dict:
-        if not body.contact_email:
-            raise HTTPException(400, "contact_email required")
-        return svc.run_lead(contact_email=body.contact_email).to_dict()
-
+    app = _build_app(svc)
     uvicorn.run(app, host="0.0.0.0", port=8081)
 
 
