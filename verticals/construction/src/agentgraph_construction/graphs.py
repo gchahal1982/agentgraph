@@ -3,10 +3,10 @@ from __future__ import annotations
 
 import os
 
-from agentgraph_core.audit import AuditLog, InMemoryAuditLog
+from agentgraph_core.audit import AuditLog
 from agentgraph_core.rbac import Principal
 from agentgraph_llm.base import LLMConfig
-from agentgraph_runtime.checkpoint import CheckpointStore, InMemoryCheckpointStore
+from agentgraph_runtime.checkpoint import CheckpointStore
 from agentgraph_runtime.node import END, NodeResult, node
 from agentgraph_runtime.state import GraphState
 from agentgraph_sdk.agent import Agent, AgentConfig
@@ -133,9 +133,11 @@ def build_construction_runner(
     checkpoint_store: CheckpointStore | None = None,
     audit_log: AuditLog | None = None,
     principal: Principal | None = None,
+    storage_url: str | None = None,
 ) -> Runner:
     return Runner(
-        checkpoint_store=checkpoint_store or InMemoryCheckpointStore(),
-        audit_log=audit_log or InMemoryAuditLog(),
+        checkpoint_store=checkpoint_store,
+        audit_log=audit_log,
         principal=principal,
+        storage_url=storage_url,
     )

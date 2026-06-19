@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import pytest
-
 from agentgraph_core.tools import ToolContext, tool
 from agentgraph_core.types import JSONValue, ToolCall
 from agentgraph_llm.base import LLMConfig

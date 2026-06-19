@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import pytest
-
 from agentgraph_core.types import Message, Role
 from agentgraph_llm.base import LLMConfig, default_llm_config, registry
 from agentgraph_llm.testing import ScriptedLLM, register_test_provider, response

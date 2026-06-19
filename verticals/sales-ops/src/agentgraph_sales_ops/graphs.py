@@ -11,12 +11,10 @@ Two graphs ship by default:
 """
 from __future__ import annotations
 
-import os
-
-from agentgraph_core.audit import AuditLog, InMemoryAuditLog
+from agentgraph_core.audit import AuditLog
 from agentgraph_core.rbac import Principal
 from agentgraph_llm.base import LLMConfig
-from agentgraph_runtime.checkpoint import CheckpointStore, InMemoryCheckpointStore
+from agentgraph_runtime.checkpoint import CheckpointStore
 from agentgraph_runtime.node import END, NodeResult, node
 from agentgraph_runtime.state import GraphState
 from agentgraph_sdk.agent import Agent, AgentConfig
@@ -180,7 +178,7 @@ def lead_qualification_graph(llm: LLMConfig | None = None) -> tuple:
     return g.compile(), {"qualifier": qualifier, "outreach": outreach}
 
 
-def pipeline_summary_graph() -> tuple:
+def pipeline_summary_graph(llm: LLMConfig | None = None) -> tuple:
     """A read-only graph that summarizes an account's pipeline.
 
     Useful for the daily standup or for a sales rep to ask "what's the
@@ -193,7 +191,7 @@ def pipeline_summary_graph() -> tuple:
             name="pipeline_reviewer",
             description="Summarize an account's pipeline and propose next steps.",
             system_prompt=REVIEWER_PROMPT,
-            llm=DEFAULT_QUALIFIER_LLM,
+            llm=_resolve_llm(llm),
             tools=[crm_lookup],
         )
     )
@@ -207,10 +205,12 @@ def build_sales_ops_runner(
     checkpoint_store: CheckpointStore | None = None,
     audit_log: AuditLog | None = None,
     principal: Principal | None = None,
+    storage_url: str | None = None,
 ) -> Runner:
-    """A pre-configured `Runner` for sales-ops examples and services."""
+    """A pre-configured `Runner` for sales-ops services."""
     return Runner(
-        checkpoint_store=checkpoint_store or InMemoryCheckpointStore(),
-        audit_log=audit_log or InMemoryAuditLog(),
+        checkpoint_store=checkpoint_store,
+        audit_log=audit_log,
         principal=principal,
+        storage_url=storage_url,
     )

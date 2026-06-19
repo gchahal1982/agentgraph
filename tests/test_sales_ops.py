@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import pytest
-
 from agentgraph_core.types import ToolCall
 from agentgraph_llm.testing import ScriptedLLM, register_test_provider, response
 from agentgraph_sales_ops import SalesOpsService
