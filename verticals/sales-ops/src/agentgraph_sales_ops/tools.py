@@ -1,8 +1,9 @@
 """Sales-ops tools: CRM enrichment, lead scoring, outreach drafting.
 
-These are real tool definitions, not stubs. They call into pluggable
-backends (`crm_lookup` -> whatever you pass to the `CRM` constructor).
-The default backend is in-memory and useful for local development and CI.
+Each tool calls into a pluggable backend (`crm_lookup` -> whatever you pass
+to `set_crm`). The default `InMemoryCRM` implements the `CRM` protocol; in
+production you implement the same protocol against HubSpot, Salesforce, or
+Pipedrive and inject it with `set_crm(...)`.
 """
 from __future__ import annotations
 
@@ -15,7 +16,7 @@ from agentgraph_core.types import JSONValue
 
 class CRM(Protocol):
     """A pluggable CRM backend. Implementations may wrap HubSpot, Salesforce,
-    Pipedrive, or a local fixture for development."""
+    or Pipedrive. The default `InMemoryCRM` implements this protocol."""
 
     def get(self, email: str | None = None, *, account_id: str | None = None) -> dict[str, Any] | None: ...
     def upsert(self, lead: dict[str, Any]) -> dict[str, Any]: ...
@@ -24,7 +25,10 @@ class CRM(Protocol):
 
 
 class InMemoryCRM:
-    """Local CRM fixture for development and tests."""
+    """In-process CRM implementing the `CRM` protocol.
+
+    This is the default backend so a service runs with no external system.
+    Swap in a real CRM via `set_crm(...)` for production."""
 
     def __init__(self) -> None:
         self._accounts: dict[str, dict[str, Any]] = {}

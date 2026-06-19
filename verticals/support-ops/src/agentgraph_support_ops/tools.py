@@ -1,8 +1,9 @@
 """Support-ops tools: knowledge base, ticketing, sentiment, escalation.
 
-Backends are pluggable. Defaults are in-memory and useful for development
-and CI. Production deployments wire these to Zendesk, Intercom, or
-Notion/KB.
+Backends are pluggable via `set_kb(...)` and `set_ticketing(...)`. The
+default `InMemoryKB`/`InMemoryTicketing` implement the protocols so a service
+runs with no external system; in production you implement the same protocols
+against Zendesk, Intercom, or a Notion/Confluence knowledge base.
 """
 from __future__ import annotations
 
