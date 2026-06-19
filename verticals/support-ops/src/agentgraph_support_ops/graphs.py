@@ -5,11 +5,9 @@
 """
 from __future__ import annotations
 
-import os
-
 from agentgraph_core.audit import AuditLog
 from agentgraph_core.rbac import Principal
-from agentgraph_llm.base import LLMConfig
+from agentgraph_llm.base import LLMConfig, default_llm_config
 from agentgraph_runtime.checkpoint import CheckpointStore
 from agentgraph_runtime.node import END, NodeResult, node
 from agentgraph_runtime.state import GraphState
@@ -26,10 +24,10 @@ from agentgraph_support_ops.tools import (
     ticket_update,
 )
 
-DEFAULT_LLM = LLMConfig(
-    provider=os.environ.get("AG_SUPPORT_LLM_PROVIDER", "mock"),
-    model=os.environ.get("AG_SUPPORT_LLM_MODEL", "mock-1"),
-)
+
+def _resolve_llm(llm: LLMConfig | None) -> LLMConfig:
+    """Use the given LLM config, or resolve the process default (fail-fast)."""
+    return llm if llm is not None else default_llm_config()
 
 TRIAGE_TOOLS = [kb_search, ticket_create, ticket_update, sentiment_score, escalate_to_human]
 
@@ -40,7 +38,7 @@ def build_triage_agent(llm: LLMConfig | None = None) -> Agent:
             name="triage",
             description="Triage an incoming support ticket and route it.",
             system_prompt=TRIAGE_PROMPT,
-            llm=llm or DEFAULT_LLM,
+            llm=_resolve_llm(llm),
             tools=TRIAGE_TOOLS,
             max_steps=5,
         )
@@ -53,7 +51,7 @@ def build_csat_agent(llm: LLMConfig | None = None) -> Agent:
             name="csat_analyst",
             description="Score a closed ticket's CSAT and propose follow-ups.",
             system_prompt=CSAT_PROMPT,
-            llm=llm or DEFAULT_LLM,
+            llm=_resolve_llm(llm),
             tools=[kb_add_article],
             max_steps=3,
         )

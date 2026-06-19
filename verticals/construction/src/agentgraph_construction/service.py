@@ -30,18 +30,29 @@ class ConstructionService:
     daily_log: Any
 
     @classmethod
-    def default(cls) -> ConstructionService:
+    def default(
+        cls,
+        *,
+        llm_provider: str | None = None,
+        llm_model: str | None = None,
+        storage_url: str | None = None,
+    ) -> ConstructionService:
+        from agentgraph_llm.base import LLMConfig, default_llm_config
+
+        if llm_provider is not None:
+            _llm = LLMConfig(provider=llm_provider, model=llm_model or "default")
+        else:
+            _llm = default_llm_config(model=llm_model)
         store = InMemoryProjectStore()
         store.seed(_default_seed_projects())
         set_store(store)
         runner = build_construction_runner(
-            checkpoint_store=InMemoryCheckpointStore(),
-            audit_log=InMemoryAuditLog(),
-            principal=Principal(id="system", roles=[RbacRole.CONSTRUCTION_PM]),
+                        principal=Principal(id="system", roles=[RbacRole.CONSTRUCTION_PM]),
+            storage_url=storage_url,
         )
-        rfi_graph, rfi_agents = rfi_drafting_graph()
-        sub_graph, sub_agents = submittal_review_graph()
-        dl_graph, dl_agents = daily_log_graph()
+        rfi_graph, rfi_agents = rfi_drafting_graph(_llm)
+        sub_graph, sub_agents = submittal_review_graph(_llm)
+        dl_graph, dl_agents = daily_log_graph(_llm)
         return cls(
             runner=runner,
             rfi_graph=rfi_graph,

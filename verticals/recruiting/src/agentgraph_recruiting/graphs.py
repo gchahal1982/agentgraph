@@ -1,11 +1,9 @@
 """Recruiting graphs."""
 from __future__ import annotations
 
-import os
-
 from agentgraph_core.audit import AuditLog
 from agentgraph_core.rbac import Principal
-from agentgraph_llm.base import LLMConfig
+from agentgraph_llm.base import LLMConfig, default_llm_config
 from agentgraph_runtime.checkpoint import CheckpointStore
 from agentgraph_runtime.node import END, NodeResult, node
 from agentgraph_runtime.state import GraphState
@@ -22,10 +20,10 @@ from agentgraph_recruiting.tools import (
     search_candidates,
 )
 
-DEFAULT_LLM = LLMConfig(
-    provider=os.environ.get("AG_RECRUITING_LLM_PROVIDER", "mock"),
-    model=os.environ.get("AG_RECRUITING_LLM_MODEL", "mock-1"),
-)
+
+def _resolve_llm(llm: LLMConfig | None) -> LLMConfig:
+    """Use the given LLM config, or resolve the process default (fail-fast)."""
+    return llm if llm is not None else default_llm_config()
 
 SOURCING_TOOLS = [
     search_candidates,
@@ -43,7 +41,7 @@ def build_sourcing_agent(llm: LLMConfig | None = None) -> Agent:
             name="sourcer",
             description="Source and outreach candidates for an open role.",
             system_prompt=SOURCING_PROMPT,
-            llm=llm or DEFAULT_LLM,
+            llm=_resolve_llm(llm),
             tools=SOURCING_TOOLS,
             max_steps=8,
         )
@@ -56,7 +54,7 @@ def build_screening_agent(llm: LLMConfig | None = None) -> Agent:
             name="screener",
             description="Screen a single candidate's resume against a role.",
             system_prompt=SCREENING_PROMPT,
-            llm=llm or DEFAULT_LLM,
+            llm=_resolve_llm(llm),
             tools=[get_resume, score_candidate, draft_outreach, schedule_screen, handoff_to_recruiter],
             max_steps=4,
         )

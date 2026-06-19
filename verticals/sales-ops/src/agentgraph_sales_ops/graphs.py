@@ -59,7 +59,7 @@ def build_outreach_agent(llm: LLMConfig | None = None) -> Agent:
             name="draft_outreach",
             description="Draft a personalized cold email for the lead.",
             system_prompt=OUTREACH_PROMPT,
-            llm=llm or DEFAULT_QUALIFIER_LLM,
+            llm=_resolve_llm(llm),
             tools=OUTREACH_TOOLS,
             max_steps=3,
         )

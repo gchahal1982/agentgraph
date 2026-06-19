@@ -10,9 +10,7 @@ import os
 from dataclasses import dataclass, field
 from typing import Any
 
-from agentgraph_core.audit import InMemoryAuditLog
 from agentgraph_core.rbac import Principal, RbacRole
-from agentgraph_runtime.checkpoint import InMemoryCheckpointStore
 from agentgraph_sdk.runner import Runner
 
 from agentgraph_sales_ops.graphs import (
@@ -42,17 +40,28 @@ class SalesOpsService:
     reviewer: Any = field(default=None, repr=False)
 
     @classmethod
-    def default(cls) -> SalesOpsService:
+    def default(
+        cls,
+        *,
+        llm_provider: str | None = None,
+        llm_model: str | None = None,
+        storage_url: str | None = None,
+    ) -> SalesOpsService:
+        from agentgraph_llm.base import LLMConfig, default_llm_config
+
+        if llm_provider is not None:
+            llm = LLMConfig(provider=llm_provider, model=llm_model or "default")
+        else:
+            llm = default_llm_config(model=llm_model)
         crm = InMemoryCRM()
         crm.seed(_default_seed_accounts())
         set_crm(crm)
         runner = build_sales_ops_runner(
-            checkpoint_store=InMemoryCheckpointStore(),
-            audit_log=InMemoryAuditLog(),
             principal=Principal(id="system", roles=[RbacRole.SALES_REP]),
+            storage_url=storage_url,
         )
-        lead_graph, lead_agents = lead_qualification_graph()
-        pipe_graph, pipe_agents = pipeline_summary_graph()
+        lead_graph, lead_agents = lead_qualification_graph(llm)
+        pipe_graph, pipe_agents = pipeline_summary_graph(llm)
         return cls(
             runner=runner,
             lead_graph=lead_graph,

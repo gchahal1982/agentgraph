@@ -30,18 +30,29 @@ class HealthcareService:
     discharge: Any
 
     @classmethod
-    def default(cls) -> HealthcareService:
+    def default(
+        cls,
+        *,
+        llm_provider: str | None = None,
+        llm_model: str | None = None,
+        storage_url: str | None = None,
+    ) -> HealthcareService:
+        from agentgraph_llm.base import LLMConfig, default_llm_config
+
+        if llm_provider is not None:
+            _llm = LLMConfig(provider=llm_provider, model=llm_model or "default")
+        else:
+            _llm = default_llm_config(model=llm_model)
         store = InMemoryPatientStore()
         store.seed(_default_seed_patients())
         set_store(store)
         runner = build_healthcare_runner(
-            checkpoint_store=InMemoryCheckpointStore(),
-            audit_log=InMemoryAuditLog(),
-            principal=Principal(id="system", roles=[RbacRole.CLINICIAN]),
+                        principal=Principal(id="system", roles=[RbacRole.CLINICIAN]),
+            storage_url=storage_url,
         )
-        intake_graph, intake_agents = intake_triage_graph()
-        pa_graph, pa_agents = prior_auth_graph()
-        dc_graph, dc_agents = discharge_summary_graph()
+        intake_graph, intake_agents = intake_triage_graph(_llm)
+        pa_graph, pa_agents = prior_auth_graph(_llm)
+        dc_graph, dc_agents = discharge_summary_graph(_llm)
         return cls(
             runner=runner,
             intake_graph=intake_graph,

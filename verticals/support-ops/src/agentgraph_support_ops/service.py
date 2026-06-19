@@ -28,19 +28,30 @@ class SupportOpsService:
     csat: Any
 
     @classmethod
-    def default(cls) -> SupportOpsService:
+    def default(
+        cls,
+        *,
+        llm_provider: str | None = None,
+        llm_model: str | None = None,
+        storage_url: str | None = None,
+    ) -> SupportOpsService:
+        from agentgraph_llm.base import LLMConfig, default_llm_config
+
+        if llm_provider is not None:
+            _llm = LLMConfig(provider=llm_provider, model=llm_model or "default")
+        else:
+            _llm = default_llm_config(model=llm_model)
         kb = InMemoryKB()
         kb.seed(_default_seed_kb())
         set_kb(kb)
         ticketing = InMemoryTicketing()
         set_ticketing(ticketing)
         runner = build_support_ops_runner(
-            checkpoint_store=InMemoryCheckpointStore(),
-            audit_log=InMemoryAuditLog(),
-            principal=Principal(id="system", roles=[RbacRole.SUPPORT_AGENT]),
+                        principal=Principal(id="system", roles=[RbacRole.SUPPORT_AGENT]),
+            storage_url=storage_url,
         )
-        triage_graph, triage_agents = ticket_triage_graph()
-        csat_graph, csat_agents = csat_loop_graph()
+        triage_graph, triage_agents = ticket_triage_graph(_llm)
+        csat_graph, csat_agents = csat_loop_graph(_llm)
         return cls(
             runner=runner,
             triage_graph=triage_graph,

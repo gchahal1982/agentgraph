@@ -27,17 +27,28 @@ class RecruitingService:
     screener: Any
 
     @classmethod
-    def default(cls) -> RecruitingService:
+    def default(
+        cls,
+        *,
+        llm_provider: str | None = None,
+        llm_model: str | None = None,
+        storage_url: str | None = None,
+    ) -> RecruitingService:
+        from agentgraph_llm.base import LLMConfig, default_llm_config
+
+        if llm_provider is not None:
+            _llm = LLMConfig(provider=llm_provider, model=llm_model or "default")
+        else:
+            _llm = default_llm_config(model=llm_model)
         pool = InMemoryCandidatePool()
         pool.seed(_default_seed_candidates())
         set_pool(pool)
         runner = build_recruiting_runner(
-            checkpoint_store=InMemoryCheckpointStore(),
-            audit_log=InMemoryAuditLog(),
-            principal=Principal(id="system", roles=[RbacRole.RECRUITER]),
+                        principal=Principal(id="system", roles=[RbacRole.RECRUITER]),
+            storage_url=storage_url,
         )
-        sourcing_graph, sourcing_agents = candidate_sourcing_graph()
-        screening_graph, screening_agents = candidate_screening_graph()
+        sourcing_graph, sourcing_agents = candidate_sourcing_graph(_llm)
+        screening_graph, screening_agents = candidate_screening_graph(_llm)
         return cls(
             runner=runner,
             sourcing_graph=sourcing_graph,

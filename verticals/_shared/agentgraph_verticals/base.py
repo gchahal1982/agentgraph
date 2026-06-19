@@ -41,8 +41,8 @@ class VerticalPack(abc.ABC):
     """Base class for vertical packs.
 
     Subclasses provide `meta` and `build_runner()`. Optional overrides
-    include `build_app()` for a FastAPI service and `seed_audit()` for
-    demo data.
+    include `build_app()` for a FastAPI service and `seed()` for initial
+    reference data.
     """
 
     meta: VerticalMeta

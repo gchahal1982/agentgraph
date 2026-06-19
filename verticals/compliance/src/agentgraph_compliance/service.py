@@ -27,17 +27,28 @@ class ComplianceService:
     auditor: Any
 
     @classmethod
-    def default(cls) -> ComplianceService:
+    def default(
+        cls,
+        *,
+        llm_provider: str | None = None,
+        llm_model: str | None = None,
+        storage_url: str | None = None,
+    ) -> ComplianceService:
+        from agentgraph_llm.base import LLMConfig, default_llm_config
+
+        if llm_provider is not None:
+            _llm = LLMConfig(provider=llm_provider, model=llm_model or "default")
+        else:
+            _llm = default_llm_config(model=llm_model)
         store = InMemoryEvidenceStore()
         store.seed("soc2", _default_seed_soc2())
         set_store(store)
         runner = build_compliance_runner(
-            checkpoint_store=InMemoryCheckpointStore(),
-            audit_log=InMemoryAuditLog(),
-            principal=Principal(id="system", roles=[RbacRole.COMPLIANCE_OFFICER]),
+                        principal=Principal(id="system", roles=[RbacRole.COMPLIANCE_OFFICER]),
+            storage_url=storage_url,
         )
-        review_graph, review_agents = policy_review_graph()
-        audit_graph, audit_agents = audit_report_graph()
+        review_graph, review_agents = policy_review_graph(_llm)
+        audit_graph, audit_agents = audit_report_graph(_llm)
         return cls(
             runner=runner,
             review_graph=review_graph,

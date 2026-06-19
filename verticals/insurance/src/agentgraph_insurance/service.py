@@ -6,9 +6,7 @@ import os
 from dataclasses import dataclass
 from typing import Any
 
-from agentgraph_core.audit import InMemoryAuditLog
 from agentgraph_core.rbac import Principal, RbacRole
-from agentgraph_runtime.checkpoint import InMemoryCheckpointStore
 from agentgraph_sdk.runner import Runner
 
 from agentgraph_insurance.graphs import (
@@ -38,20 +36,31 @@ class InsuranceService:
     triage: Any
 
     @classmethod
-    def default(cls) -> InsuranceService:
+    def default(
+        cls,
+        *,
+        llm_provider: str | None = None,
+        llm_model: str | None = None,
+        storage_url: str | None = None,
+    ) -> InsuranceService:
+        from agentgraph_llm.base import LLMConfig, default_llm_config
+
+        if llm_provider is not None:
+            _llm = LLMConfig(provider=llm_provider, model=llm_model or "default")
+        else:
+            _llm = default_llm_config(model=llm_model)
         policies = InMemoryPolicyStore()
         policies.seed(_default_seed_policies())
         set_policy_store(policies)
         claims = InMemoryClaimStore()
         set_claim_store(claims)
         runner = build_insurance_runner(
-            checkpoint_store=InMemoryCheckpointStore(),
-            audit_log=InMemoryAuditLog(),
-            principal=Principal(id="system", roles=[RbacRole.INSURANCE_UNDERWRITER]),
+                        principal=Principal(id="system", roles=[RbacRole.INSURANCE_UNDERWRITER]),
+            storage_url=storage_url,
         )
-        fnol_graph, fnol_agents = fnol_intake_graph()
-        uw_graph, uw_agents = underwriting_copilot_graph()
-        triage_graph, triage_agents = claims_triage_graph()
+        fnol_graph, fnol_agents = fnol_intake_graph(_llm)
+        uw_graph, uw_agents = underwriting_copilot_graph(_llm)
+        triage_graph, triage_agents = claims_triage_graph(_llm)
         return cls(
             runner=runner,
             fnol_graph=fnol_graph,

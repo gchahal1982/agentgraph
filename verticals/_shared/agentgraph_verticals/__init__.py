@@ -7,8 +7,9 @@ Each vertical (sales-ops, support-ops, compliance, ...) implements:
 - `policies.py`   - role -> permission mappings and policy guards
 - `service.py`    - a preconfigured FastAPI app or runner
 
-This base gives them a consistent shape and a default `MockLLM` setup so
-they work out-of-the-box in tests and CI without API keys.
+This base gives them a consistent shape. Each vertical's `Service.default()`
+selects the LLM (via `AG_LLM_PROVIDER`/`AG_LLM_MODEL`, or explicit arguments)
+and durable storage (`AG_STORAGE_URL`).
 """
 from agentgraph_verticals.base import VerticalMeta, VerticalPack, default_meta
 

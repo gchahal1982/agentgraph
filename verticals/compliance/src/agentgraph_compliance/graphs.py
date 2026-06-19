@@ -5,11 +5,9 @@
 """
 from __future__ import annotations
 
-import os
-
 from agentgraph_core.audit import AuditLog
 from agentgraph_core.rbac import Principal
-from agentgraph_llm.base import LLMConfig
+from agentgraph_llm.base import LLMConfig, default_llm_config
 from agentgraph_runtime.checkpoint import CheckpointStore
 from agentgraph_runtime.node import END, NodeResult, node
 from agentgraph_runtime.state import GraphState
@@ -25,10 +23,10 @@ from agentgraph_compliance.tools import (
     signoff,
 )
 
-DEFAULT_LLM = LLMConfig(
-    provider=os.environ.get("AG_COMPLIANCE_LLM_PROVIDER", "mock"),
-    model=os.environ.get("AG_COMPLIANCE_LLM_MODEL", "mock-1"),
-)
+
+def _resolve_llm(llm: LLMConfig | None) -> LLMConfig:
+    """Use the given LLM config, or resolve the process default (fail-fast)."""
+    return llm if llm is not None else default_llm_config()
 
 REVIEW_TOOLS = [fetch_evidence, list_controls, attach_evidence, flag_risk, signoff]
 
@@ -39,7 +37,7 @@ def build_review_agent(llm: LLMConfig | None = None) -> Agent:
             name="policy_reviewer",
             description="Review and sign off on a control after collecting evidence.",
             system_prompt=POLICY_REVIEW_PROMPT,
-            llm=llm or DEFAULT_LLM,
+            llm=_resolve_llm(llm),
             tools=REVIEW_TOOLS,
             max_steps=8,
         )
@@ -52,7 +50,7 @@ def build_audit_agent(llm: LLMConfig | None = None) -> Agent:
             name="audit_report",
             description="Generate an audit-ready report for a framework.",
             system_prompt=AUDIT_REPORT_PROMPT,
-            llm=llm or DEFAULT_LLM,
+            llm=_resolve_llm(llm),
             tools=[fetch_evidence, list_controls, attach_evidence, flag_risk],
             max_steps=10,
         )

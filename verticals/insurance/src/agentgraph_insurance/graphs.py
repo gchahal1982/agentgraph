@@ -1,11 +1,9 @@
 """Insurance graphs."""
 from __future__ import annotations
 
-import os
-
 from agentgraph_core.audit import AuditLog
 from agentgraph_core.rbac import Principal
-from agentgraph_llm.base import LLMConfig
+from agentgraph_llm.base import LLMConfig, default_llm_config
 from agentgraph_runtime.checkpoint import CheckpointStore
 from agentgraph_runtime.node import END, NodeResult, node
 from agentgraph_runtime.state import GraphState
@@ -22,10 +20,10 @@ from agentgraph_insurance.tools import (
     update_claim,
 )
 
-DEFAULT_LLM = LLMConfig(
-    provider=os.environ.get("AG_INSURANCE_LLM_PROVIDER", "mock"),
-    model=os.environ.get("AG_INSURANCE_LLM_MODEL", "mock-1"),
-)
+
+def _resolve_llm(llm: LLMConfig | None) -> LLMConfig:
+    """Use the given LLM config, or resolve the process default (fail-fast)."""
+    return llm if llm is not None else default_llm_config()
 
 FNOL_TOOLS = [lookup_policy, open_claim, score_risk, assign_adjuster, escalate_to_human]
 UNDERWRITING_TOOLS = [lookup_policy, score_risk, escalate_to_human]
@@ -39,7 +37,7 @@ def build_fnol_agent(llm: LLMConfig | None = None):
             name="fnol_intake",
             description="Capture FNOL and route to the right adjuster.",
             system_prompt=FNOL_PROMPT,
-            llm=llm or DEFAULT_LLM,
+            llm=_resolve_llm(llm),
             tools=FNOL_TOOLS,
             max_steps=6,
         )
@@ -53,7 +51,7 @@ def build_underwriting_agent(llm: LLMConfig | None = None):
             name="underwriting_copilot",
             description="Score risk and recommend accept/conditional/decline.",
             system_prompt=UNDERWRITING_PROMPT,
-            llm=llm or DEFAULT_LLM,
+            llm=_resolve_llm(llm),
             tools=UNDERWRITING_TOOLS,
             max_steps=4,
         )
@@ -67,7 +65,7 @@ def build_claims_triage_agent(llm: LLMConfig | None = None):
             name="claims_triage",
             description="Triage a batch of open claims and assign adjusters.",
             system_prompt=CLAIMS_TRIAGE_PROMPT,
-            llm=llm or DEFAULT_LLM,
+            llm=_resolve_llm(llm),
             tools=CLAIMS_TRIAGE_TOOLS,
             max_steps=6,
         )

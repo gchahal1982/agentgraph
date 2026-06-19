@@ -1,11 +1,9 @@
 """Healthcare graphs."""
 from __future__ import annotations
 
-import os
-
 from agentgraph_core.audit import AuditLog
 from agentgraph_core.rbac import Principal
-from agentgraph_llm.base import LLMConfig
+from agentgraph_llm.base import LLMConfig, default_llm_config
 from agentgraph_runtime.checkpoint import CheckpointStore
 from agentgraph_runtime.node import END, NodeResult, node
 from agentgraph_runtime.state import GraphState
@@ -22,10 +20,10 @@ from agentgraph_healthcare.tools import (
     signoff_prior_auth,
 )
 
-DEFAULT_LLM = LLMConfig(
-    provider=os.environ.get("AG_HEALTHCARE_LLM_PROVIDER", "mock"),
-    model=os.environ.get("AG_HEALTHCARE_LLM_MODEL", "mock-1"),
-)
+
+def _resolve_llm(llm: LLMConfig | None) -> LLMConfig:
+    """Use the given LLM config, or resolve the process default (fail-fast)."""
+    return llm if llm is not None else default_llm_config()
 
 
 def build_intake_agent(llm: LLMConfig | None = None):
@@ -35,7 +33,7 @@ def build_intake_agent(llm: LLMConfig | None = None):
             name="intake_triage",
             description="Triage a patient intake message by acuity.",
             system_prompt=INTAKE_PROMPT,
-            llm=llm or DEFAULT_LLM,
+            llm=_resolve_llm(llm),
             tools=[lookup_patient, open_encounter, escalate_to_clinician],
             max_steps=4,
         )
@@ -49,7 +47,7 @@ def build_prior_auth_agent(llm: LLMConfig | None = None):
             name="prior_auth",
             description="Draft a prior-authorization request from a clinical note.",
             system_prompt=PRIOR_AUTH_PROMPT,
-            llm=llm or DEFAULT_LLM,
+            llm=_resolve_llm(llm),
             tools=[lookup_patient, draft_prior_auth, signoff_prior_auth, escalate_to_clinician],
             max_steps=4,
         )
@@ -63,7 +61,7 @@ def build_discharge_agent(llm: LLMConfig | None = None):
             name="discharge_summary",
             description="Compose a discharge summary from a hospital-stay transcript.",
             system_prompt=DISCHARGE_PROMPT,
-            llm=llm or DEFAULT_LLM,
+            llm=_resolve_llm(llm),
             tools=[append_discharge_summary, lookup_patient],
             max_steps=3,
         )

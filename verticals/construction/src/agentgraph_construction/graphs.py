@@ -1,11 +1,9 @@
 """Construction graphs."""
 from __future__ import annotations
 
-import os
-
 from agentgraph_core.audit import AuditLog
 from agentgraph_core.rbac import Principal
-from agentgraph_llm.base import LLMConfig
+from agentgraph_llm.base import LLMConfig, default_llm_config
 from agentgraph_runtime.checkpoint import CheckpointStore
 from agentgraph_runtime.node import END, NodeResult, node
 from agentgraph_runtime.state import GraphState
@@ -22,10 +20,10 @@ from agentgraph_construction.tools import (
     review_submittal,
 )
 
-DEFAULT_LLM = LLMConfig(
-    provider=os.environ.get("AG_CONSTRUCTION_LLM_PROVIDER", "mock"),
-    model=os.environ.get("AG_CONSTRUCTION_LLM_MODEL", "mock-1"),
-)
+
+def _resolve_llm(llm: LLMConfig | None) -> LLMConfig:
+    """Use the given LLM config, or resolve the process default (fail-fast)."""
+    return llm if llm is not None else default_llm_config()
 
 
 def build_rfi_agent(llm: LLMConfig | None = None):
@@ -35,7 +33,7 @@ def build_rfi_agent(llm: LLMConfig | None = None):
             name="rfi_drafter",
             description="Draft a structured RFI from field notes.",
             system_prompt=RFI_PROMPT,
-            llm=llm or DEFAULT_LLM,
+            llm=_resolve_llm(llm),
             tools=[lookup_project, list_specs, create_rfi, escalate_to_pm],
             max_steps=5,
         )
@@ -49,7 +47,7 @@ def build_submittal_agent(llm: LLMConfig | None = None):
             name="submittal_reviewer",
             description="Review a submittal against the project spec.",
             system_prompt=SUBMITTAL_PROMPT,
-            llm=llm or DEFAULT_LLM,
+            llm=_resolve_llm(llm),
             tools=[list_specs, review_submittal, escalate_to_pm],
             max_steps=4,
         )
@@ -63,7 +61,7 @@ def build_daily_log_agent(llm: LLMConfig | None = None):
             name="daily_log",
             description="Compose the daily log from crew inputs and weather.",
             system_prompt=DAILY_LOG_PROMPT,
-            llm=llm or DEFAULT_LLM,
+            llm=_resolve_llm(llm),
             tools=[append_daily_log],
             max_steps=2,
         )
