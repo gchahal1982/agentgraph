@@ -55,11 +55,35 @@ cd agentgraph
 uv sync --all-packages
 ```
 
+### Configure (model + storage)
+
+AgentGraph talks to a real LLM and persists state durably. Configure both via
+environment (a starter `.env.example` is included):
+
+```bash
+# Model: provider + key. Fails fast at run time if the key is missing.
+export AG_LLM_PROVIDER=openai           # openai | anthropic | ollama
+export AG_LLM_MODEL=gpt-4o-mini
+export OPENAI_API_KEY=sk-...
+
+# Storage: durable by default. SQLite needs nothing; Postgres for multi-node.
+export AG_STORAGE_URL="sqlite:///$HOME/.local/share/agentgraph/agentgraph.db"
+# export AG_STORAGE_URL="postgresql://user:pass@host:5432/agentgraph"
+
+# Server auth (required before exposing the API).
+export AG_API_KEY="$(openssl rand -hex 32)"
+```
+
+With a local model and no API key, set `AG_LLM_PROVIDER=ollama` (and run
+Ollama). The fake/scripted provider lives only in `agentgraph_llm.testing`
+and is used by the test suite — it is never a silent production default.
+
 ### Run a packaged vertical
 
 ```python
 from agentgraph_sales_ops import SalesOpsService
 
+# Uses AG_LLM_PROVIDER/AG_LLM_MODEL + key, and AG_STORAGE_URL for durable state.
 svc = SalesOpsService.default()
 result = svc.run_lead(contact_email="ada@analytix.com")
 print(result.output, result.cost_usd)
@@ -78,7 +102,7 @@ curl -X POST http://localhost:8081/run/lead \
 from agentgraph_sdk import Agent, Graph
 from agentgraph_sdk.runner import Runner
 from agentgraph_core.tools import tool
-from agentgraph_llm.base import LLMConfig
+from agentgraph_llm.base import default_llm_config
 
 @tool(description="Look up a customer in the CRM")
 async def get_customer(ctx, customer_id: str):
@@ -88,13 +112,14 @@ agent = Agent(
     name="support",
     description="Tier-1 support agent",
     system_prompt="You are a tier-1 support agent.",
-    llm=LLMConfig(provider="openai", model="gpt-4o-mini"),
+    llm=default_llm_config(),     # resolves provider/model/key from env
     tools=[get_customer],
 )
 
 g = Graph("support")
 g.add_agent(agent, entrypoint=True)
 
+# Runner persists checkpoints + audit to AG_STORAGE_URL (durable by default).
 result = Runner().run(g.compile(), input={"prompt": "Where is my order?"})
 ```
 
@@ -162,21 +187,52 @@ Each package's `README.md` documents the graph and tools.
 
 ```bash
 make install   # uv sync --all-packages
-make test      # run pytest
+make test      # ./scripts/test.sh (pytest in an isolated uv env)
 make lint      # ruff
 make typecheck # mypy
 make serve     # launch server on :8080
 ```
 
 The workspace uses [uv](https://github.com/astral-sh/uv) for fast,
-deterministic installs. The CI workflow runs against Python 3.11 and
-3.12.
+deterministic installs. CI runs against Python 3.11 and 3.12.
+
+> Tests run via `./scripts/test.sh`, which uses `uv run --with pytest`. This
+> avoids a broken system-level pytest if one is present on your `PATH`.
+
+## Configuration
+
+All configuration is via environment variables.
+
+| Variable | Purpose | Default |
+|---|---|---|
+| `AG_LLM_PROVIDER` | `openai`, `anthropic`, or `ollama` | `openai` |
+| `AG_LLM_MODEL` | Model name | provider default (e.g. `gpt-4o-mini`) |
+| `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | Provider key | — (required for that provider) |
+| `AG_STORAGE_URL` | `sqlite:///path.db` or `postgresql://...` | SQLite under the data dir |
+| `AG_API_KEY` | Bearer token required by the HTTP API | — (unset = open mode + warning) |
+
+`default_llm_config()` raises a clear error at run time if the selected
+provider needs a key that is not set, so a misconfigured deployment fails
+fast instead of producing silent or fake output.
+
+## Security
+
+- The HTTP server requires a bearer token (`AG_API_KEY`) on every privileged
+  route. Health checks (`/healthz`, `/readyz`) are public for load balancers.
+  If `AG_API_KEY` is unset the server starts in open mode and logs a loud
+  warning — never expose it that way.
+- RBAC is enforced in the runtime: nodes that touch PII/PHI declare a required
+  permission, and a run without a principal holding it is rejected.
+- The audit log records every model call, tool call, and policy decision with
+  the run id, thread id, and principal. Use a Postgres `AG_STORAGE_URL` (or a
+  WORM-backed store) for tamper-evidence in regulated verticals.
 
 ## Tests
 
 ```bash
-uv run --all-packages python -m pytest tests -q
-# 31 passed
+./scripts/test.sh            # all tests
+./scripts/test.sh tests/test_runtime.py
+# 39 passed
 ```
 
 ## Differentiators vs. CrewAI / AutoGen / LangGraph / LangChain

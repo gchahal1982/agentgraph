@@ -1,10 +1,20 @@
-# Compose file for running AgentGraph + Postgres + a vertical.
+# Compose stack: Postgres + the AgentGraph server + all 7 vertical services + UI.
 #
 # Usage:
+#   cp .env.example .env   # set OPENAI_API_KEY (or ANTHROPIC) and AG_API_KEY
 #   docker compose up --build
-#   curl -X POST http://localhost:8081/run/lead -d '{"contact_email":"ada@analytix.com"}' -H 'content-type: application/json'
+#   curl -s localhost:8080/healthz
 #
-# Set OPENAI_API_KEY (or ANTHROPIC_API_KEY) in your shell to use a real model.
+# All services share one Postgres database for durable checkpoints + audit.
+
+x-ag-env: &ag-env
+  AG_STORAGE_URL: postgresql://agentgraph:agentgraph@postgres:5432/agentgraph
+  AG_LLM_PROVIDER: ${AG_LLM_PROVIDER:-openai}
+  AG_LLM_MODEL: ${AG_LLM_MODEL:-gpt-4o-mini}
+  AG_API_KEY: ${AG_API_KEY:?set AG_API_KEY in your .env}
+  OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+  AG_HOST: 0.0.0.0
 
 services:
   postgres:
@@ -28,11 +38,8 @@ services:
       context: .
       dockerfile: docker/Dockerfile.server
     environment:
-      AG_HOST: 0.0.0.0
+      <<: *ag-env
       AG_PORT: "8080"
-      DATABASE_URL: postgresql+asyncpg://agentgraph:agentgraph@postgres:5432/agentgraph
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     ports:
       - "8080:8080"
     depends_on:
@@ -40,107 +47,70 @@ services:
         condition: service_healthy
 
   sales-ops:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.sales-ops
+    build: { context: ., dockerfile: docker/Dockerfile.sales-ops }
     environment:
-      AG_HOST: 0.0.0.0
+      <<: *ag-env
       AG_PORT: "8081"
-      AG_SALES_LLM_PROVIDER: ${AG_SALES_LLM_PROVIDER:-mock}
-      AG_SALES_LLM_MODEL: ${AG_SALES_LLM_MODEL:-mock-1}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-    ports:
-      - "8081:8081"
+    ports: ["8081:8081"]
+    depends_on:
+      postgres: { condition: service_healthy }
 
   support-ops:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.support-ops
+    build: { context: ., dockerfile: docker/Dockerfile.support-ops }
     environment:
-      AG_HOST: 0.0.0.0
+      <<: *ag-env
       AG_PORT: "8082"
-      AG_SUPPORT_LLM_PROVIDER: ${AG_SUPPORT_LLM_PROVIDER:-mock}
-      AG_SUPPORT_LLM_MODEL: ${AG_SUPPORT_LLM_MODEL:-mock-1}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-    ports:
-      - "8082:8082"
+    ports: ["8082:8082"]
+    depends_on:
+      postgres: { condition: service_healthy }
 
   compliance:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.compliance
+    build: { context: ., dockerfile: docker/Dockerfile.compliance }
     environment:
-      AG_HOST: 0.0.0.0
+      <<: *ag-env
       AG_PORT: "8083"
-      AG_COMPLIANCE_LLM_PROVIDER: ${AG_COMPLIANCE_LLM_PROVIDER:-mock}
-      AG_COMPLIANCE_LLM_MODEL: ${AG_COMPLIANCE_LLM_MODEL:-mock-1}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-    ports:
-      - "8083:8083"
+    ports: ["8083:8083"]
+    depends_on:
+      postgres: { condition: service_healthy }
 
   recruiting:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.recruiting
+    build: { context: ., dockerfile: docker/Dockerfile.recruiting }
     environment:
-      AG_HOST: 0.0.0.0
+      <<: *ag-env
       AG_PORT: "8084"
-      AG_RECRUITING_LLM_PROVIDER: ${AG_RECRUITING_LLM_PROVIDER:-mock}
-      AG_RECRUITING_LLM_MODEL: ${AG_RECRUITING_LLM_MODEL:-mock-1}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-    ports:
-      - "8084:8084"
+    ports: ["8084:8084"]
+    depends_on:
+      postgres: { condition: service_healthy }
 
   insurance:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.insurance
+    build: { context: ., dockerfile: docker/Dockerfile.insurance }
     environment:
-      AG_HOST: 0.0.0.0
+      <<: *ag-env
       AG_PORT: "8085"
-      AG_INSURANCE_LLM_PROVIDER: ${AG_INSURANCE_LLM_PROVIDER:-mock}
-      AG_INSURANCE_LLM_MODEL: ${AG_INSURANCE_LLM_MODEL:-mock-1}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-    ports:
-      - "8085:8085"
+    ports: ["8085:8085"]
+    depends_on:
+      postgres: { condition: service_healthy }
 
   construction:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.construction
+    build: { context: ., dockerfile: docker/Dockerfile.construction }
     environment:
-      AG_HOST: 0.0.0.0
+      <<: *ag-env
       AG_PORT: "8086"
-      AG_CONSTRUCTION_LLM_PROVIDER: ${AG_CONSTRUCTION_LLM_PROVIDER:-mock}
-      AG_CONSTRUCTION_LLM_MODEL: ${AG_CONSTRUCTION_LLM_MODEL:-mock-1}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-    ports:
-      - "8086:8086"
+    ports: ["8086:8086"]
+    depends_on:
+      postgres: { condition: service_healthy }
 
   healthcare:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.healthcare
+    build: { context: ., dockerfile: docker/Dockerfile.healthcare }
     environment:
-      AG_HOST: 0.0.0.0
+      <<: *ag-env
       AG_PORT: "8087"
-      AG_HEALTHCARE_LLM_PROVIDER: ${AG_HEALTHCARE_LLM_PROVIDER:-mock}
-      AG_HEALTHCARE_LLM_MODEL: ${AG_HEALTHCARE_LLM_MODEL:-mock-1}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-    ports:
-      - "8087:8087"
+    ports: ["8087:8087"]
+    depends_on:
+      postgres: { condition: service_healthy }
 
   ui:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.ui
+    build: { context: ., dockerfile: docker/Dockerfile.ui }
     environment:
       AGENTGRAPH_SERVER: http://server:8080
     ports:

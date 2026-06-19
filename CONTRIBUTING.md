@@ -11,7 +11,7 @@ vertical.
 git clone https://github.com/anomalyco/agentgraph
 cd agentgraph
 uv sync --all-packages
-uv run --all-packages python -m pytest tests -q
+./scripts/test.sh        # runs pytest in an isolated uv env (39 passed)
 ```
 
 ## Layout

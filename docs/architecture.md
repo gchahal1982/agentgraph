@@ -93,8 +93,12 @@ resumes from its last checkpoint.
 
 `agentgraph-llm` is a thin provider abstraction. The runtime calls
 `LLM.complete(messages, tools=...)` and gets back a `ModelResponse`.
-Providers in the box: OpenAI, Anthropic, Ollama, and a `Mock` used in
-tests. Adding a new provider is a `register_provider` call.
+Providers in the box: OpenAI (and OpenAI-compatible servers), Anthropic, and
+Ollama. `default_llm_config()` resolves the provider/model/key from the
+environment and fails fast if a required key is missing. A scripted provider
+for tests lives in `agentgraph_llm.testing` and is registered only by the test
+suite — it is never a production default. Adding a new provider is a
+`register_provider` call.
 
 ## Why uv workspaces?
 
