@@ -1,0 +1,25 @@
+[project]
+name = "agentgraph-healthcare"
+version = "0.1.0"
+description = "Healthcare vertical pack: intake triage, prior auth, discharge summary."
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "AgentGraph Authors" }]
+dependencies = [
+    "pydantic>=2.6",
+    "agentgraph-core",
+    "agentgraph-runtime",
+    "agentgraph-sdk",
+    "agentgraph-llm",
+    "agentgraph-verticals",
+]
+
+[project.scripts]
+ag-healthcare = "agentgraph_healthcare.service:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/agentgraph_healthcare"]

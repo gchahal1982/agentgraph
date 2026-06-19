@@ -1,0 +1,28 @@
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+WORKDIR /app
+
+# System deps for psycopg / asyncpg
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+RUN pip install uv
+
+# Copy the workspace
+COPY pyproject.toml uv.lock ./
+COPY packages ./packages
+COPY verticals ./verticals
+
+# Install the runtime + server
+RUN uv sync --all-packages --no-dev
+
+ENV PATH="/app/.venv/bin:$PATH"
+
+EXPOSE 8080
+CMD ["agentgraph-server", "--host", "0.0.0.0", "--port", "8080"]

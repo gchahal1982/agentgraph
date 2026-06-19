@@ -1,0 +1,66 @@
+[project]
+name = "agentgraph"
+version = "0.1.0"
+description = "Agent runtime for business outcomes. Open-source orchestration with packaged vertical solutions."
+authors = [{ name = "AgentGraph Authors" }]
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.11"
+
+[tool.uv.workspace]
+members = [
+    "packages/core",
+    "packages/runtime",
+    "packages/llm",
+    "packages/sdk",
+    "packages/server",
+    "packages/cli",
+    "verticals/_shared",
+    "verticals/sales-ops",
+    "verticals/support-ops",
+    "verticals/compliance",
+    "verticals/recruiting",
+    "verticals/insurance",
+    "verticals/construction",
+    "verticals/healthcare",
+]
+
+[tool.uv.sources]
+agentgraph-core = { workspace = true }
+agentgraph-runtime = { workspace = true }
+agentgraph-llm = { workspace = true }
+agentgraph-sdk = { workspace = true }
+agentgraph-server = { workspace = true }
+agentgraph-cli = { workspace = true }
+agentgraph-verticals = { workspace = true }
+agentgraph-sales-ops = { workspace = true }
+agentgraph-support-ops = { workspace = true }
+agentgraph-compliance = { workspace = true }
+agentgraph-recruiting = { workspace = true }
+agentgraph-insurance = { workspace = true }
+agentgraph-construction = { workspace = true }
+agentgraph-healthcare = { workspace = true }
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-ra -q --strict-markers"
+markers = [
+    "integration: marks tests as integration (deselect with '-m \"not integration\"')",
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "ASYNC", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict_optional = true
+warn_unused_ignores = true
+ignore_missing_imports = true
