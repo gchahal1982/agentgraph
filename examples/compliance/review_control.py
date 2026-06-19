@@ -6,7 +6,7 @@ from agentgraph_compliance import ComplianceService
 
 async def main() -> None:
     svc = ComplianceService.default()
-    state = await svc.reviewer.runtime().run(
+    state = await svc.runner.runtime().run(
         svc.review_graph, input={"framework": "soc2", "control": "CC6.1"}
     )
     print("output:", state.values.get("agent_output"))
