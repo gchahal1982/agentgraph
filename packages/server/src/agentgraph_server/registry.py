@@ -32,6 +32,16 @@ class AgentRegistry:
                 raise ValueError(f"Agent {agent.name!r} already registered")
             self._by_name[agent.name] = agent
 
+    def register_sync(self, agent: RegisteredAgent) -> None:
+        """Register without acquiring the async lock.
+
+        Used during synchronous app startup (before the event loop owns the
+        registry). Safe because startup is single-threaded.
+        """
+        if agent.name in self._by_name:
+            raise ValueError(f"Agent {agent.name!r} already registered")
+        self._by_name[agent.name] = agent
+
     async def unregister(self, name: str) -> None:
         async with self._lock:
             self._by_name.pop(name, None)

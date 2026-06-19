@@ -18,10 +18,10 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 import structlog
-from agentgraph_core.audit import AuditLog, audit_log_from_url
+from agentgraph_core.audit import AuditLog
 from agentgraph_core.ids import new_thread_id
 from agentgraph_core.rbac import Principal, RbacRole
-from agentgraph_core.storage import default_storage_url
+from agentgraph_core.storage import audit_log_from_url, default_storage_url
 from agentgraph_core.types import JSONValue
 from agentgraph_runtime.checkpoint import CheckpointStore, checkpoint_store_from_url
 from agentgraph_runtime.runtime import Runtime, RuntimeConfig
@@ -77,7 +77,6 @@ def _register_verticals(state: AppState) -> None:
         ("agentgraph_construction", "ConstructionService", "draft_rfi", "rfi_graph"),
         ("agentgraph_healthcare", "HealthcareService", "intake_triage", "intake_graph"),
     ]
-    import asyncio
     import importlib
 
     for module_name, service_cls_name, agent_name, graph_attr in specs:
@@ -89,14 +88,20 @@ def _register_verticals(state: AppState) -> None:
             service_cls = getattr(module, service_cls_name)
             service = service_cls.default(storage_url=state.storage_url)
             graph = getattr(service, graph_attr)
-            asyncio.run(
-                state.registry.register(
-                    RegisteredAgent(
-                        name=agent_name,
-                        description=service_cls.__doc__ or agent_name,
-                        vertical=module_name.replace("agentgraph_", ""),
-                        graph=graph,
-                    )
+            state.registry.register_sync(
+                RegisteredAgent(
+                    name=agent_name,
+                    description=service_cls.__doc__ or agent_name,
+                    vertical=module_name.replace("agentgraph_", ""),
+                    graph=graph,
+                )
+            )
+        except Exception as e:  # noqa: BLE001
+            _log.warning(
+                "vertical_registration_skipped",
+                vertical=module_name,
+                error=f"{type(e).__name__}: {e}",
+            )
                 )
             )
         except Exception as e:

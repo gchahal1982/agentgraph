@@ -19,12 +19,12 @@ def setup_module() -> None:
 
 def test_support_ops_default() -> None:
     svc = SupportOpsService.default(**_TEST_LLM)
-    assert svc.triage.config.name == "triage"
+    assert svc.triage.config.name == "triage_agent"
 
 
 def test_compliance_default() -> None:
     svc = ComplianceService.default(**_TEST_LLM)
-    assert svc.reviewer.config.name == "policy_reviewer"
+    assert svc.reviewer.config.name == "reviewer_agent"
 
 
 def test_recruiting_default() -> None:
@@ -34,14 +34,14 @@ def test_recruiting_default() -> None:
 
 def test_insurance_default() -> None:
     svc = InsuranceService.default(**_TEST_LLM)
-    assert svc.fnol.config.name == "fnol_intake"
+    assert svc.fnol.config.name == "fnol_agent"
 
 
 def test_construction_default() -> None:
     svc = ConstructionService.default(**_TEST_LLM)
-    assert svc.rfi.config.name == "rfi_drafter"
+    assert svc.rfi.config.name == "rfi_agent"
 
 
 def test_healthcare_default() -> None:
     svc = HealthcareService.default(**_TEST_LLM)
-    assert svc.intake.config.name == "intake_triage"
+    assert svc.intake.config.name == "intake_agent"

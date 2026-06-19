@@ -29,12 +29,14 @@ from agentgraph_sales_ops.tools import (
     score_lead,
 )
 
-# --- system prompts (kept here for quick editing) ---
+def _resolve_llm(llm: LLMConfig | None) -> LLMConfig:
+    """Use the given LLM config, or resolve the process default (fail-fast)."""
+    if llm is not None:
+        return llm
+    from agentgraph_llm.base import default_llm_config
 
-DEFAULT_QUALIFIER_LLM = LLMConfig(
-    provider=os.environ.get("AG_SALES_LLM_PROVIDER", "mock"),
-    model=os.environ.get("AG_SALES_LLM_MODEL", "mock-1"),
-)
+    return default_llm_config()
+
 
 QUALIFIER_TOOLS = [crm_lookup, crm_upsert, score_lead, handoff_to_rep]
 OUTREACH_TOOLS = [crm_lookup, draft_email]
@@ -46,7 +48,7 @@ def build_qualifier_agent(llm: LLMConfig | None = None) -> Agent:
             name="qualify_lead",
             description="Enrich the lead, score it, and decide MQL/SQL/disqualified.",
             system_prompt=QUALIFIER_PROMPT,
-            llm=llm or DEFAULT_QUALIFIER_LLM,
+            llm=_resolve_llm(llm),
             tools=QUALIFIER_TOOLS,
             max_steps=4,
         )
