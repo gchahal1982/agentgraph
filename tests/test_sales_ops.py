@@ -2,19 +2,24 @@
 from __future__ import annotations
 
 import pytest
+
 from agentgraph_core.types import ToolCall
-from agentgraph_llm.mock import MockLLM, mock_response
+from agentgraph_llm.testing import ScriptedLLM, register_test_provider, response
 from agentgraph_sales_ops import SalesOpsService
 from agentgraph_sales_ops.tools import InMemoryCRM, set_crm
 
 
+def setup_module() -> None:
+    register_test_provider()
+
+
 @pytest.mark.asyncio
 async def test_sales_ops_qualifies_lead() -> None:
-    MockLLM.reset()
-    # Script the qualifier agent to call crm_upsert and then return text.
-    MockLLM.script(
+    register_test_provider()
+    ScriptedLLM.reset()
+    ScriptedLLM.script(
         "qualifier_agent",
-        mock_response(
+        response(
             text="",
             tool_calls=[
                 ToolCall(
@@ -26,16 +31,12 @@ async def test_sales_ops_qualifies_lead() -> None:
             prompt_tokens=20,
             completion_tokens=10,
         ),
-        mock_response(text="Qualified.", prompt_tokens=5, completion_tokens=2),
+        response(text="Qualified.", prompt_tokens=5, completion_tokens=2),
     )
-    svc = SalesOpsService.default()
-    result = svc.runner.arun(svc.lead_graph, input={"contact_email": "ada@analytix.com"})
-    # The script includes upsert + a final answer; the agent's node loops
-    # at most max_steps times. We just want to assert the graph executed
-    # without error and produced a result.
-    state = await result
+    svc = SalesOpsService.default(llm_provider="test", llm_model="test-model")
+    state = await svc.runner.arun(svc.lead_graph, input={"contact_email": "ada@analytix.com"})
     assert state.finished
-    MockLLM.reset()
+    ScriptedLLM.reset()
 
 
 def test_sales_ops_crm_seed() -> None:

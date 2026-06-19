@@ -6,6 +6,7 @@ shapes) live in subclasses; the rest of AgentGraph never sees them.
 """
 from __future__ import annotations
 
+import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, ClassVar
@@ -129,6 +130,59 @@ def llm_for_config(config: LLMConfig) -> LLM:
     if config.provider not in _REGISTRY:
         raise ValueError(
             f"Unknown LLM provider {config.provider!r}. "
-            f"Available: {sorted(_REGISTRY)}"
+            f"Available: {sorted(_REGISTRY)}. "
+            f"Set AG_LLM_PROVIDER and AG_LLM_MODEL, or pass an explicit LLMConfig."
         )
     return _REGISTRY[config.provider](config)
+
+
+# Default model per provider, used when AG_LLM_MODEL is unset.
+_DEFAULT_MODELS: dict[str, str] = {
+    "openai": "gpt-4o-mini",
+    "anthropic": "claude-3-5-haiku-20241022",
+    "ollama": "llama3.3",
+}
+
+# Which environment variable holds the API key for each provider.
+_PROVIDER_KEY_ENV: dict[str, str] = {
+    "openai": "OPENAI_API_KEY",
+    "anthropic": "ANTHROPIC_API_KEY",
+}
+
+
+def default_llm_config(
+    *,
+    provider: str | None = None,
+    model: str | None = None,
+    temperature: float = 0.2,
+) -> LLMConfig:
+    """Build the default `LLMConfig` from the environment.
+
+    Resolution order:
+      - provider:  argument -> ``AG_LLM_PROVIDER`` -> ``"openai"``
+      - model:     argument -> ``AG_LLM_MODEL`` -> provider default
+      - api_key:   the provider's key env var (e.g. ``OPENAI_API_KEY``)
+
+    Fails fast with a clear error if the selected provider requires an API
+    key and none is configured. This prevents agents from silently running
+    against a fake or misconfigured backend in production.
+    """
+    provider = provider or os.environ.get("AG_LLM_PROVIDER") or "openai"
+    if provider not in _REGISTRY:
+        raise ValueError(
+            f"Unknown LLM provider {provider!r}. Available: {sorted(_REGISTRY)}."
+        )
+    model = model or os.environ.get("AG_LLM_MODEL") or _DEFAULT_MODELS.get(provider)
+    if not model:
+        raise ValueError(
+            f"No model configured for provider {provider!r}. "
+            f"Set AG_LLM_MODEL."
+        )
+    key_env = _PROVIDER_KEY_ENV.get(provider)
+    if key_env and not os.environ.get(key_env):
+        raise RuntimeError(
+            f"LLM provider {provider!r} requires an API key but {key_env} is not set. "
+            f"Export {key_env}, or select a local provider with "
+            f"AG_LLM_PROVIDER=ollama."
+        )
+    return LLMConfig(provider=provider, model=model, temperature=temperature)

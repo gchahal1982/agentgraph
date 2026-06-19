@@ -1,12 +1,21 @@
-"""Deterministic in-process LLM for tests and offline development.
+"""Test-only LLM provider.
 
-Vertical packs use this to enable CI without API keys. Users can register
-their own canned responses per node name.
+This module is **not** imported by the shipped package. It exists so the
+test suite (and local experimentation) can exercise agent execution without
+calling a real model or needing an API key.
+
+Register it explicitly in a test fixture::
+
+    from agentgraph_llm.testing import register_test_provider, script
+    register_test_provider()
+    script("my_node", text="hello")
+
+It is intentionally kept out of `agentgraph_llm.__init__` so production code
+cannot accidentally depend on it.
 """
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass, field
 from typing import ClassVar
 
 from agentgraph_core.types import Message, ModelResponse, Role, ToolCall, Usage
@@ -15,37 +24,26 @@ from agentgraph_llm.base import LLM, LLMConfig, ModelInfo, ToolSpec, register_pr
 
 Handler = Callable[[list[Message], list[ToolSpec] | None], ModelResponse]
 
-
-@dataclass(slots=True)
-class _Scripted:
-    """A scripted response queue. Each call pops the next entry, falling
-    back to `default` once the queue is exhausted."""
-
-    responses: list[ModelResponse] = field(default_factory=list)
-    default: ModelResponse = field(default_factory=ModelResponse)
+TEST_PROVIDER = "test"
 
 
-@register_provider
-class MockLLM(LLM):
-    """A scripted LLM used in tests.
+class ScriptedLLM(LLM):
+    """A scripted LLM for the test suite.
 
-    Usage::
+    Responses are registered per node name with `script(...)`. When the last
+    user message (or the system prompt) contains a registered node name, the
+    corresponding scripted responses are returned in order.
 
-        llm = MockLLM(LLMConfig(provider="mock", model="mock-1"))
-        MockLLM.script("node_a", ModelResponse(text="hi"))
-        resp = await llm.complete([Message(role=Role.USER, content="hello")])
+    Named `ScriptedLLM` (not `TestLLM`) so pytest does not attempt to collect
+    it as a test class.
     """
 
-    name: ClassVar[str] = "mock"
-
-    # node_name -> handler
+    name: ClassVar[str] = TEST_PROVIDER
     _handlers: ClassVar[dict[str, Handler]] = {}
 
     def __init__(self, config: LLMConfig) -> None:
         super().__init__(config)
-        self._queue: list[ModelResponse] = []
         self._default = ModelResponse(text="")
-        self._scripted: dict[str, _Scripted] = {}
 
     @classmethod
     def script(cls, node_name: str, *responses: ModelResponse) -> None:
@@ -62,21 +60,41 @@ class MockLLM(LLM):
         tools: list[ToolSpec] | None = None,
         tool_choice: str | dict[str, str] | None = None,
     ) -> ModelResponse:
-        # Try to find a handler whose name appears in the last user message.
         last = messages[-1].content if messages else ""
-        for node, h in self._handlers.items():
+        for node, handler in self._handlers.items():
             if node in last:
-                return h(messages, tools)
+                return handler(messages, tools)
+        system = messages[0].content if messages else ""
+        for node, handler in self._handlers.items():
+            if node in system:
+                return handler(messages, tools)
         return self._default
 
     def list_models(self) -> list[ModelInfo]:
-        return [ModelInfo(name="mock-1", provider="mock")]
+        return [ModelInfo(name="test-model", provider=TEST_PROVIDER)]
+
+
+# Backwards-compatible alias for fixtures that prefer the shorter name.
+TestLLM = ScriptedLLM
+
+
+def register_test_provider() -> None:
+    """Register the scripted provider in the global registry (idempotent)."""
+    register_provider(ScriptedLLM)
+
+
+def script(node_name: str, *responses: ModelResponse) -> None:
+    ScriptedLLM.script(node_name, *responses)
+
+
+def reset() -> None:
+    ScriptedLLM.reset()
 
 
 def _make_handler(responses: list[ModelResponse]) -> Handler:
     idx = 0
 
-    def _h(messages: list[Message], tools: list[ToolSpec] | None) -> ModelResponse:
+    def _handler(messages: list[Message], tools: list[ToolSpec] | None) -> ModelResponse:
         nonlocal idx
         if idx < len(responses):
             r = responses[idx]
@@ -84,17 +102,17 @@ def _make_handler(responses: list[ModelResponse]) -> Handler:
             return r
         return ModelResponse(text="")
 
-    return _h
+    return _handler
 
 
-def mock_response(
+def response(
     text: str = "",
     *,
     tool_calls: list[ToolCall] | None = None,
     prompt_tokens: int = 0,
     completion_tokens: int = 0,
 ) -> ModelResponse:
-    """Helper to build a `ModelResponse` for `MockLLM.script(...)`."""
+    """Build a `ModelResponse` for use with `script(...)`."""
     return ModelResponse(
         text=text,
         message=Message(role=Role.ASSISTANT, content=text) if text else None,
@@ -103,7 +121,7 @@ def mock_response(
             prompt_tokens=prompt_tokens,
             completion_tokens=completion_tokens,
             total_tokens=prompt_tokens + completion_tokens,
-            model="mock-1",
+            model="test-model",
         ),
         finish_reason="tool_calls" if tool_calls else "stop",
     )
