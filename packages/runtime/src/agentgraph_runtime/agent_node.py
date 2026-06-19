@@ -49,7 +49,7 @@ class AgentNode:
     `goto` set).
     """
 
-    def __init__(self, spec: AgentSpec, llm: LLM) -> None:
+    def __init__(self, spec: AgentSpec, llm: LLM | None = None) -> None:
         self.spec = spec
         self.llm = llm
         self._node = Node(name=spec.name, description=spec.description, handler=self.run)
@@ -59,10 +59,16 @@ class AgentNode:
         return self._node
 
     async def run(self, state: GraphState) -> NodeResult:
-        from agentgraph_llm.base import llm_for_config  # local import to avoid cycles
+        from agentgraph_llm.base import (  # local import to avoid cycles
+            default_llm_config,
+            llm_for_config,
+        )
 
         llm = self.llm
-        if self.spec.llm is not None:
+        if llm is None:
+            cfg = self.spec.llm or default_llm_config()
+            llm = llm_for_config(cfg)
+        elif self.spec.llm is not None:
             llm = llm_for_config(self.spec.llm)
 
         tool_specs = [ToolSpec(name=t.name, description=t.description, parameters=t.args_schema) for t in self.spec.tools]

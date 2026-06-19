@@ -9,10 +9,18 @@ dependencies = [
     "fastapi>=0.110",
     "uvicorn[standard]>=0.27",
     "pydantic>=2.6",
+    "structlog>=24.1",
     "agentgraph-core",
     "agentgraph-runtime",
     "agentgraph-sdk",
     "agentgraph-llm",
+    "agentgraph-sales-ops",
+    "agentgraph-support-ops",
+    "agentgraph-compliance",
+    "agentgraph-recruiting",
+    "agentgraph-insurance",
+    "agentgraph-construction",
+    "agentgraph-healthcare",
 ]
 
 [project.scripts]

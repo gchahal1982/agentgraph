@@ -8,7 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from agentgraph_core.tools import Tool
-from agentgraph_llm.base import LLM, LLMConfig, ToolSpec
+from agentgraph_llm.base import LLMConfig, ToolSpec
 from agentgraph_runtime.agent_node import AgentNode, AgentSpec
 
 
@@ -41,7 +41,11 @@ class Agent:
             llm=config.llm,
             max_steps=config.max_steps,
         )
-        self._node = AgentNode(self._spec, _make_llm(config.llm))
+        # The LLM is constructed lazily at run time (in AgentNode.run) so that
+        # building an Agent never requires a configured provider/API key at
+        # import or startup. This lets the server register agents even when
+        # only some providers are configured.
+        self._node = AgentNode(self._spec, llm=None)
 
     @property
     def node(self) -> AgentNode:
@@ -53,9 +57,3 @@ class Agent:
             ToolSpec(name=t.name, description=t.description, parameters=t.args_schema)
             for t in self.config.tools
         ]
-
-
-def _make_llm(cfg: LLMConfig) -> LLM:
-    from agentgraph_llm.base import llm_for_config
-
-    return llm_for_config(cfg)

@@ -307,23 +307,39 @@ name = "agentgraph-server"
 version = "0.1.0"
 source = { editable = "packages/server" }
 dependencies = [
+    { name = "agentgraph-compliance" },
+    { name = "agentgraph-construction" },
     { name = "agentgraph-core" },
+    { name = "agentgraph-healthcare" },
+    { name = "agentgraph-insurance" },
     { name = "agentgraph-llm" },
+    { name = "agentgraph-recruiting" },
     { name = "agentgraph-runtime" },
+    { name = "agentgraph-sales-ops" },
     { name = "agentgraph-sdk" },
+    { name = "agentgraph-support-ops" },
     { name = "fastapi" },
     { name = "pydantic" },
+    { name = "structlog" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "agentgraph-compliance", editable = "verticals/compliance" },
+    { name = "agentgraph-construction", editable = "verticals/construction" },
     { name = "agentgraph-core", editable = "packages/core" },
+    { name = "agentgraph-healthcare", editable = "verticals/healthcare" },
+    { name = "agentgraph-insurance", editable = "verticals/insurance" },
     { name = "agentgraph-llm", editable = "packages/llm" },
+    { name = "agentgraph-recruiting", editable = "verticals/recruiting" },
     { name = "agentgraph-runtime", editable = "packages/runtime" },
+    { name = "agentgraph-sales-ops", editable = "verticals/sales-ops" },
     { name = "agentgraph-sdk", editable = "packages/sdk" },
+    { name = "agentgraph-support-ops", editable = "verticals/support-ops" },
     { name = "fastapi", specifier = ">=0.110" },
     { name = "pydantic", specifier = ">=2.6" },
+    { name = "structlog", specifier = ">=24.1" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.27" },
 ]
 
