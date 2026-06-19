@@ -10,6 +10,9 @@ from agentgraph_runtime.checkpoint import (
     Checkpoint,
     CheckpointStore,
     InMemoryCheckpointStore,
+    PostgresCheckpointStore,
+    SQLiteCheckpointStore,
+    checkpoint_store_from_url,
 )
 from agentgraph_runtime.edge import ConditionalEdge, Edge
 from agentgraph_runtime.graph import Graph, GraphBuilder
@@ -33,6 +36,9 @@ __all__ = [
     "Checkpoint",
     "CheckpointStore",
     "InMemoryCheckpointStore",
+    "SQLiteCheckpointStore",
+    "PostgresCheckpointStore",
+    "checkpoint_store_from_url",
     "AgentNode",
     "AgentSpec",
     "Handoff",

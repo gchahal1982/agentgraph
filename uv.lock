@@ -105,14 +105,21 @@ dependencies = [
     { name = "ulid-py" },
 ]
 
+[package.optional-dependencies]
+postgres = [
+    { name = "asyncpg" },
+]
+
 [package.metadata]
 requires-dist = [
+    { name = "asyncpg", marker = "extra == 'postgres'", specifier = ">=0.29" },
     { name = "orjson", specifier = ">=3.10" },
     { name = "pydantic", specifier = ">=2.6" },
     { name = "structlog", specifier = ">=24.1" },
     { name = "typing-extensions", specifier = ">=4.10" },
     { name = "ulid-py", specifier = ">=1.1" },
 ]
+provides-extras = ["postgres"]
 
 [[package]]
 name = "agentgraph-healthcare"
