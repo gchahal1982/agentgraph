@@ -1,0 +1,382 @@
+{
+  "$id": "https://agentgraph.dev/sota/schema/context.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "excluded_from_technical_score": {
+      "const": true
+    },
+    "products": {
+      "items": {
+        "$id": "https://agentgraph.dev/sota/schema/context-product.schema.json",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "collected_at": {
+            "minLength": 1,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "type": "string"
+          },
+          "commits": {
+            "additionalProperties": false,
+            "properties": {
+              "active_weeks": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "days_30": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "days_365": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "days_90": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "lifetime": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "median_per_week": {
+                "minimum": 0,
+                "type": "number"
+              }
+            },
+            "required": [
+              "days_30",
+              "days_90",
+              "days_365",
+              "lifetime",
+              "active_weeks",
+              "median_per_week"
+            ],
+            "type": "object"
+          },
+          "community": {
+            "type": "object"
+          },
+          "contributors": {
+            "$id": "https://agentgraph.dev/sota/schema/contributors.schema.json",
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "additionalProperties": false,
+            "properties": {
+              "human_unique": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "normalization": {
+                "const": "mailmap-verified-casefold-bot-excluded"
+              }
+            },
+            "required": [
+              "human_unique",
+              "normalization"
+            ],
+            "title": "Contributors evidence contract",
+            "type": "object"
+          },
+          "deployment": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "documentation_adjudication": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "documentation_reviews": {
+            "items": {
+              "$id": "https://agentgraph.dev/sota/schema/documentation-review.schema.json",
+              "$schema": "https://json-schema.org/draft/2020-12/schema",
+              "additionalProperties": false,
+              "properties": {
+                "evidence_ids": {
+                  "items": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "minItems": 0,
+                  "type": "array"
+                },
+                "reviewed_at": {
+                  "minLength": 1,
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+                  "type": "string"
+                },
+                "reviewer": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "scores": {
+                  "items": false,
+                  "maxItems": 10,
+                  "minItems": 10,
+                  "prefixItems": [
+                    {
+                      "maximum": 1,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    {
+                      "maximum": 1,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    {
+                      "maximum": 1,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    {
+                      "maximum": 1,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    {
+                      "maximum": 1,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    {
+                      "maximum": 1,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    {
+                      "maximum": 1,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    {
+                      "maximum": 1,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    {
+                      "maximum": 1,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    {
+                      "maximum": 1,
+                      "minimum": 0,
+                      "type": "integer"
+                    }
+                  ],
+                  "type": "array"
+                }
+              },
+              "required": [
+                "reviewer",
+                "scores",
+                "reviewed_at"
+              ],
+              "title": "Documentation-Review evidence contract",
+              "type": "object"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "documentation_score": {
+            "maximum": 10,
+            "minimum": 1,
+            "type": "number"
+          },
+          "issues": {
+            "$id": "https://agentgraph.dev/sota/schema/response-stats.schema.json",
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "additionalProperties": false,
+            "properties": {
+              "median_hours": {
+                "minimum": 0,
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "p90_hours": {
+                "minimum": 0,
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "sample_size": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "sample_size",
+              "median_hours",
+              "p90_hours"
+            ],
+            "title": "Response-Stats evidence contract",
+            "type": "object"
+          },
+          "license": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "limitations": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 0,
+            "type": "array"
+          },
+          "product_id": {
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "type": "string"
+          },
+          "pull_requests": {
+            "$id": "https://agentgraph.dev/sota/schema/response-stats.schema.json",
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "additionalProperties": false,
+            "properties": {
+              "median_hours": {
+                "minimum": 0,
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "p90_hours": {
+                "minimum": 0,
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "sample_size": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "sample_size",
+              "median_hours",
+              "p90_hours"
+            ],
+            "title": "Response-Stats evidence contract",
+            "type": "object"
+          },
+          "releases": {
+            "$id": "https://agentgraph.dev/sota/schema/releases.schema.json",
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "additionalProperties": false,
+            "properties": {
+              "days_since_latest": {
+                "minimum": 0,
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "deduplication": {
+                "const": "version+artifact"
+              },
+              "median_days": {
+                "minimum": 0,
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "prerelease_365": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "stable_365": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "stable_lifetime": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "stable_365",
+              "stable_lifetime",
+              "prerelease_365",
+              "median_days",
+              "days_since_latest",
+              "deduplication"
+            ],
+            "title": "Releases evidence contract",
+            "type": "object"
+          },
+          "windows": {
+            "$id": "https://agentgraph.dev/sota/schema/windows.schema.json",
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "additionalProperties": false,
+            "properties": {
+              "days_30": {
+                "const": 30
+              },
+              "days_365": {
+                "const": 365
+              },
+              "days_90": {
+                "const": 90
+              },
+              "lifetime": {
+                "const": "lifetime"
+              }
+            },
+            "required": [
+              "days_30",
+              "days_90",
+              "days_365",
+              "lifetime"
+            ],
+            "title": "Windows evidence contract",
+            "type": "object"
+          }
+        },
+        "required": [
+          "product_id",
+          "collected_at",
+          "windows",
+          "contributors",
+          "commits",
+          "releases",
+          "documentation_reviews",
+          "documentation_score",
+          "community",
+          "issues",
+          "pull_requests",
+          "deployment",
+          "license",
+          "limitations"
+        ],
+        "title": "Context-Product evidence contract",
+        "type": "object"
+      },
+      "minItems": 0,
+      "type": "array"
+    },
+    "schema_version": {
+      "minLength": 1,
+      "pattern": "^1\\.0\\.0$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "excluded_from_technical_score",
+    "products"
+  ],
+  "title": "Context evidence contract",
+  "type": "object"
+}

@@ -1,0 +1,149 @@
+{
+  "$id": "https://agentgraph.dev/sota/schema/source.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "minLength": 1,
+      "pattern": "^1\\.0\\.0$",
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "$id": "https://agentgraph.dev/sota/schema/source-record.schema.json",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "access_class": {
+            "enum": [
+              "public",
+              "authenticated",
+              "paid",
+              "trial",
+              "licensed",
+              "unavailable"
+            ],
+            "type": "string"
+          },
+          "archive_ref": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "canonical_ref": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "content_sha256": {
+            "minLength": 1,
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "limitations": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 0,
+            "type": "array"
+          },
+          "plan": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "product_id": {
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "type": "string"
+          },
+          "product_version": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "published_at": {
+            "minLength": 1,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "type": "string"
+          },
+          "publisher": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "region": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "retrieved_at": {
+            "minLength": 1,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "type": "string"
+          },
+          "source_id": {
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "type": "string"
+          },
+          "source_type": {
+            "enum": [
+              "repository",
+              "documentation",
+              "release",
+              "api",
+              "package",
+              "benchmark",
+              "security",
+              "deployment",
+              "independent-evaluation",
+              "artifact"
+            ],
+            "type": "string"
+          },
+          "supersedes_source_id": {
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "type": "string"
+          },
+          "supported_claim_ids": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 0,
+            "type": "array"
+          },
+          "title": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "updated_at": {
+            "minLength": 1,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_id",
+          "product_id",
+          "publisher",
+          "source_type",
+          "title",
+          "canonical_ref",
+          "supported_claim_ids",
+          "retrieved_at",
+          "access_class",
+          "content_sha256",
+          "limitations"
+        ],
+        "title": "Source-Record evidence contract",
+        "type": "object"
+      },
+      "minItems": 0,
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "sources"
+  ],
+  "title": "Source evidence contract",
+  "type": "object"
+}

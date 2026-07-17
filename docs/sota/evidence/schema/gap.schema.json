@@ -1,0 +1,335 @@
+{
+  "$id": "https://agentgraph.dev/sota/schema/gap.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "gaps": {
+      "items": {
+        "$id": "https://agentgraph.dev/sota/schema/gap-record.schema.json",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "acceptance_command": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "acceptance_metric": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "approval_gates": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 0,
+            "type": "array"
+          },
+          "baseline_measurement": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "claim_ids": {
+            "items": {
+              "minLength": 1,
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "classification": {
+            "enum": [
+              "critical",
+              "meaningful",
+              "supporting"
+            ],
+            "type": "string"
+          },
+          "criterion_ids": {
+            "items": {
+              "minLength": 1,
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "current_state": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "dependencies": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 0,
+            "type": "array"
+          },
+          "dimension": {
+            "enum": [
+              "architecture",
+              "APIs",
+              "auth/security",
+              "reliability",
+              "performance",
+              "observability",
+              "DX",
+              "deployment/operations",
+              "connectors/integrations",
+              "agent UX",
+              "human-in-loop",
+              "evals",
+              "domain workflows"
+            ],
+            "type": "string"
+          },
+          "disposition": {
+            "enum": [
+              "gap",
+              "no_current_gap"
+            ],
+            "type": "string"
+          },
+          "effort": {
+            "enum": [
+              "S",
+              "M",
+              "L",
+              "XL"
+            ],
+            "type": "string"
+          },
+          "equivalence_margin": {
+            "minimum": 0,
+            "type": "number"
+          },
+          "gap": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "gap_id": {
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "type": "string"
+          },
+          "implementation_path": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "measured_closure_result": {
+            "$id": "https://agentgraph.dev/sota/schema/closure.schema.json",
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "additionalProperties": false,
+            "properties": {
+              "after": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "artifact_ids": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "minItems": 0,
+                "type": "array"
+              },
+              "before": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "confidence_interval": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "disposition": {
+                "enum": [
+                  "verified",
+                  "failed",
+                  "inconclusive"
+                ],
+                "type": "string"
+              },
+              "regressions": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "minItems": 0,
+                "type": "array"
+              },
+              "reviewed_at": {
+                "minLength": 1,
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+                "type": "string"
+              },
+              "reviewer": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "run_ids": {
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "minItems": 0,
+                "type": "array"
+              },
+              "tested_sha": {
+                "minLength": 1,
+                "pattern": "^[0-9a-f]{40}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "tested_sha",
+              "run_ids",
+              "artifact_ids",
+              "before",
+              "after",
+              "regressions",
+              "reviewer",
+              "reviewed_at",
+              "disposition"
+            ],
+            "title": "Closure evidence contract",
+            "type": "object"
+          },
+          "owner_role": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "priority": {
+            "enum": [
+              "P0",
+              "P1",
+              "P2",
+              "P3"
+            ],
+            "type": "string"
+          },
+          "product_id": {
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "type": "string"
+          },
+          "repository": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "rollback_plan": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "run_ids": {
+            "items": {
+              "minLength": 1,
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "type": "string"
+            },
+            "minItems": 0,
+            "type": "array"
+          },
+          "sota_target": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "source_ids": {
+            "items": {
+              "minLength": 1,
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "observed",
+              "approved",
+              "in_progress",
+              "blocked",
+              "implemented",
+              "verified_closed",
+              "reopened",
+              "rejected"
+            ],
+            "type": "string"
+          },
+          "target_branch": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "target_pr": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "target_threshold": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "gap_id",
+          "product_id",
+          "repository",
+          "title",
+          "dimension",
+          "classification",
+          "criterion_ids",
+          "claim_ids",
+          "source_ids",
+          "run_ids",
+          "current_state",
+          "sota_target",
+          "baseline_measurement",
+          "disposition",
+          "gap",
+          "implementation_path",
+          "acceptance_metric",
+          "acceptance_command",
+          "target_threshold",
+          "effort",
+          "priority",
+          "owner_role",
+          "dependencies",
+          "approval_gates",
+          "status",
+          "target_branch",
+          "target_pr",
+          "rollback_plan"
+        ],
+        "title": "Gap-Record evidence contract",
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "product_id": {
+      "minLength": 1,
+      "pattern": "^[a-z0-9][a-z0-9._-]*$",
+      "type": "string"
+    },
+    "schema_version": {
+      "minLength": 1,
+      "pattern": "^1\\.0\\.0$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "product_id",
+    "gaps"
+  ],
+  "title": "Gap evidence contract",
+  "type": "object"
+}

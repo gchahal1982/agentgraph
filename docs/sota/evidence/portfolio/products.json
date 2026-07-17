@@ -1,0 +1,12 @@
+{
+  "kind": "products",
+  "products": [
+    {"category": "agent orchestration runtime", "dossier_path": "docs/sota/agentgraph-sota-dossier.md", "name": "AgentGraph", "order": 1, "product_id": "agentgraph", "repository": "gchahal1982/agentgraph", "scored": true},
+    {"category": "local-first visual QA", "dossier_path": "docs/sota/pixeljury-sota-dossier.md", "name": "PixelJury", "order": 2, "product_id": "pixeljury", "repository": "gchahal1982/pixeljury", "scored": true},
+    {"category": "enterprise AI workflow automation", "dossier_path": "docs/sota/agentfree-sota-dossier.md", "name": "AgentFlow", "order": 3, "product_id": "agentflow", "repository": "gchahal1982/agentfree", "scored": true},
+    {"category": "document intelligence", "dossier_path": "docs/sota/docos-sota-dossier.md", "name": "DocOS", "order": 4, "product_id": "docos", "repository": "gchahal1982/DocOS", "scored": true},
+    {"category": "agent memory", "dossier_path": "docs/sota/memlayer-sota-dossier.md", "name": "memlayer", "order": 5, "product_id": "memlayer", "repository": "gchahal1982/memlayer", "scored": true},
+    {"category": "crawl, research, and public-web intelligence", "dossier_path": "docs/sota/sigcrawl-sota-dossier.md", "name": "sigcrawl", "order": 6, "product_id": "sigcrawl", "repository": "gchahal1982/sigcrawl", "scored": true}
+  ],
+  "schema_version": "1.0.0"
+}

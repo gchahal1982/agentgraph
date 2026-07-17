@@ -1,0 +1,24 @@
+name: SOTA evidence contract
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  offline-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-python@v5.6.0
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python -m pip install --requirement scripts/sota/requirements.txt
+      - run: python scripts/sota/verify.py --root . --strict --offline
+      - run: python -m pytest -q tests/test_sota_schemas.py tests/test_sota_scoring.py tests/test_sota_verdict.py tests/test_sota_gaps.py tests/test_sota_context.py tests/test_sota_render.py tests/test_sota_github.py tests/test_sota_urls.py
+      - run: python scripts/sota/render.py --root . --check
+      - run: ruff check scripts/sota tests/test_sota_*.py

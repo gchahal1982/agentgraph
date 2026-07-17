@@ -1,0 +1,217 @@
+{
+  "$id": "https://agentgraph.dev/sota/schema/criteria.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "criteria": {
+      "items": {
+        "$id": "https://agentgraph.dev/sota/schema/criterion.schema.json",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "criterion_id": {
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "type": "string"
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "subcriteria": {
+            "items": {
+              "$id": "https://agentgraph.dev/sota/schema/subcriterion.schema.json",
+              "$schema": "https://json-schema.org/draft/2020-12/schema",
+              "additionalProperties": false,
+              "properties": {
+                "anchor_guidance": {
+                  "items": false,
+                  "maxItems": 5,
+                  "minItems": 5,
+                  "prefixItems": [
+                    {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  ],
+                  "type": "array"
+                },
+                "classification": {
+                  "enum": [
+                    "critical",
+                    "meaningful",
+                    "supporting"
+                  ],
+                  "type": "string"
+                },
+                "dimension": {
+                  "enum": [
+                    "architecture",
+                    "APIs",
+                    "auth/security",
+                    "reliability",
+                    "performance",
+                    "observability",
+                    "DX",
+                    "deployment/operations",
+                    "connectors/integrations",
+                    "agent UX",
+                    "human-in-loop",
+                    "evals",
+                    "domain workflows"
+                  ],
+                  "type": "string"
+                },
+                "name": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "rationale": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "subcriterion_id": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9][a-z0-9._-]*$",
+                  "type": "string"
+                },
+                "user_workflow": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "subcriterion_id",
+                "name",
+                "dimension",
+                "classification",
+                "anchor_guidance"
+              ],
+              "title": "Subcriterion evidence contract",
+              "type": "object"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "weight": {
+            "exclusiveMinimum": 0,
+            "type": "number"
+          }
+        },
+        "required": [
+          "criterion_id",
+          "name",
+          "weight",
+          "subcriteria"
+        ],
+        "title": "Criterion evidence contract",
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "evidence_multipliers": {
+      "$id": "https://agentgraph.dev/sota/schema/evidence-multipliers.schema.json",
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "absent": {
+          "const": 0
+        },
+        "code-inspection": {
+          "const": 0.45
+        },
+        "deterministic-unit": {
+          "const": 0.65
+        },
+        "independently-reproduced": {
+          "const": 1.0
+        },
+        "integration-contract": {
+          "const": 0.85
+        },
+        "live": {
+          "const": 1.0
+        },
+        "official-documentation": {
+          "const": 0.2
+        }
+      },
+      "required": [
+        "independently-reproduced",
+        "live",
+        "integration-contract",
+        "deterministic-unit",
+        "code-inspection",
+        "official-documentation",
+        "absent"
+      ],
+      "title": "Evidence-Multipliers evidence contract",
+      "type": "object"
+    },
+    "frozen_at": {
+      "minLength": 1,
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+      "type": "string"
+    },
+    "rounding": {
+      "const": "half-up-one-decimal-display-only"
+    },
+    "rule_version": {
+      "minLength": 1,
+      "pattern": "^1\\.0\\.0$",
+      "type": "string"
+    },
+    "schema_version": {
+      "minLength": 1,
+      "pattern": "^1\\.0\\.0$",
+      "type": "string"
+    },
+    "sensitivity": {
+      "$id": "https://agentgraph.dev/sota/schema/sensitivity.schema.json",
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "leave_one_out": {
+          "const": true
+        },
+        "weight_perturbation": {
+          "const": 0.25
+        }
+      },
+      "required": [
+        "weight_perturbation",
+        "leave_one_out"
+      ],
+      "title": "Sensitivity evidence contract",
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "rule_version",
+    "frozen_at",
+    "criteria",
+    "evidence_multipliers",
+    "rounding",
+    "sensitivity"
+  ],
+  "title": "Criteria evidence contract",
+  "type": "object"
+}

@@ -1,0 +1,362 @@
+{
+  "$id": "https://agentgraph.dev/sota/schema/claim.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "claims": {
+      "items": {
+        "$id": "https://agentgraph.dev/sota/schema/claim-record.schema.json",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "access_class": {
+            "enum": [
+              "public",
+              "authenticated",
+              "paid",
+              "trial",
+              "licensed",
+              "unavailable"
+            ],
+            "type": "string"
+          },
+          "artifact_path": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "artifact_sha256": {
+            "minLength": 1,
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "audited_commit_sha": {
+            "minLength": 1,
+            "pattern": "^[0-9a-f]{40}$",
+            "type": "string"
+          },
+          "category": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "claim_id": {
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "type": "string"
+          },
+          "claim_text": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "claim_type": {
+            "enum": [
+              "repository_fact",
+              "dynamic_metric",
+              "capability",
+              "benchmark",
+              "comparison",
+              "security_control",
+              "deployment",
+              "sota_verdict"
+            ],
+            "type": "string"
+          },
+          "collection_tool": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "collection_tool_version": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "command_or_endpoint": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "competitor_id": {
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "type": "string"
+          },
+          "dimension": {
+            "enum": [
+              "architecture",
+              "APIs",
+              "auth/security",
+              "reliability",
+              "performance",
+              "observability",
+              "DX",
+              "deployment/operations",
+              "connectors/integrations",
+              "agent UX",
+              "human-in-loop",
+              "evals",
+              "domain workflows"
+            ],
+            "type": "string"
+          },
+          "expires_at": {
+            "minLength": 1,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "type": "string"
+          },
+          "limitations": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 0,
+            "type": "array"
+          },
+          "measurement": {
+            "$id": "https://agentgraph.dev/sota/schema/measurement.schema.json",
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "additionalProperties": false,
+            "properties": {
+              "aggregation": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "artifact_sha256": {
+                "minLength": 1,
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "config_sha256": {
+                "minLength": 1,
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "cost_usd": {
+                "minimum": 0,
+                "type": "number"
+              },
+              "dataset_license": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "dependency_lock_sha256": {
+                "minLength": 1,
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "environment": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "failure_count": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "fixture_revision": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "hardware": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "latency_ms": {
+                "minimum": 0,
+                "type": "number"
+              },
+              "model_provider": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "prompt_sha256": {
+                "minLength": 1,
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "raw_artifact": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "repetitions": {
+                "minimum": 1,
+                "type": "integer"
+              },
+              "resolved_model_id": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "resources": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "runtime": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "sample_size": {
+                "minimum": 1,
+                "type": "integer"
+              },
+              "schema_sha256": {
+                "minLength": 1,
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "seed": {
+                "type": "integer"
+              },
+              "tokens": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "tolerance": {
+                "minimum": 0,
+                "type": "number"
+              },
+              "uncertainty": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "fixture_revision",
+              "dataset_license",
+              "environment",
+              "dependency_lock_sha256",
+              "config_sha256",
+              "sample_size",
+              "repetitions",
+              "aggregation",
+              "raw_artifact",
+              "artifact_sha256",
+              "failure_count"
+            ],
+            "title": "Measurement evidence contract",
+            "type": "object"
+          },
+          "observed_at": {
+            "minLength": 1,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "type": "string"
+          },
+          "outcome": {
+            "enum": [
+              "verified-supported",
+              "verified-partial",
+              "verified-absent",
+              "unknown",
+              "conflicting",
+              "restricted",
+              "stale",
+              "not-applicable"
+            ],
+            "type": "string"
+          },
+          "plan": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "product_id": {
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "type": "string"
+          },
+          "reason_codes": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 0,
+            "type": "array"
+          },
+          "region": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "release": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "repository": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "retrieved_at": {
+            "minLength": 1,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "type": "string"
+          },
+          "reviewer_handle": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "reviewer_role": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "source_ids": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 0,
+            "type": "array"
+          },
+          "valid_from": {
+            "minLength": 1,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "type": "string"
+          },
+          "verification_status": {
+            "enum": [
+              "verified",
+              "partially-verified",
+              "unverified",
+              "blocked",
+              "conflicting",
+              "stale",
+              "not-applicable"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "claim_id",
+          "product_id",
+          "repository",
+          "dimension",
+          "claim_text",
+          "claim_type",
+          "outcome",
+          "verification_status",
+          "reason_codes",
+          "source_ids",
+          "audited_commit_sha",
+          "artifact_path",
+          "artifact_sha256",
+          "collection_tool",
+          "collection_tool_version",
+          "reviewer_role",
+          "reviewer_handle",
+          "observed_at",
+          "retrieved_at",
+          "valid_from",
+          "expires_at",
+          "access_class",
+          "limitations"
+        ],
+        "title": "Claim-Record evidence contract",
+        "type": "object"
+      },
+      "minItems": 0,
+      "type": "array"
+    },
+    "schema_version": {
+      "minLength": 1,
+      "pattern": "^1\\.0\\.0$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "claims"
+  ],
+  "title": "Claim evidence contract",
+  "type": "object"
+}

@@ -1,0 +1,36 @@
+name: SOTA URL evidence
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "43 7 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  credential-free-url-check:
+    runs-on: ubuntu-24.04
+    env:
+      HTTP_PROXY: ""
+      HTTPS_PROXY: ""
+      ALL_PROXY: ""
+      http_proxy: ""
+      https_proxy: ""
+      all_proxy: ""
+      NO_PROXY: "*"
+      no_proxy: "*"
+    steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5.6.0
+        with:
+          python-version: "3.11"
+      - run: python -m pip install --requirement scripts/sota/requirements.txt
+      - run: python -m pytest -q tests/test_sota_urls.py
+      - name: Restricted-egress policy
+        run: |
+          echo "Ordinary GitHub-hosted runners do not provide network-level restricted egress."
+          echo "Production external checks must use a controlled credential-free runner with an explicit firewall allow policy."
+          echo "Failing closed: no external URLs are checked on this unrestricted hosted runner."

@@ -1,0 +1,40 @@
+name: SOTA portfolio collectors
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 6 * * 1"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: sota-portfolio-collector
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-python@v5.6.0
+        with:
+          python-version: "3.11"
+      - run: python -m pip install --requirement scripts/sota/requirements.txt
+      - name: Validate before collection
+        run: python scripts/sota/verify.py --root . --strict --offline
+      - name: Collection policy
+        run: |
+          echo "Collectors create a dated branch and reviewed PR only when normalized evidence changes."
+          echo "They never infer capability and never push directly to main."
+      - name: Create reviewed refresh PR
+        uses: peter-evans/create-pull-request@v7.0.8
+        with:
+          branch: sota/portfolio-refresh-${{ github.run_id }}
+          commit-message: "docs: refresh SOTA portfolio evidence"
+          title: "docs: refresh SOTA portfolio evidence"
+          body: "Automated collection only. Capability and verdict changes require independent review."
+          add-paths: |
+            docs/sota/evidence/snapshots/**
+            docs/sota/README.md
