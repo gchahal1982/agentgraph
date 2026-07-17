@@ -1,0 +1,9 @@
+{
+  "generated_path": "docs/sota/README.md",
+  "kind": "index-config",
+  "methodology": "A SOTA verdict requires every meaningful or critical dimension to lead, tie, or demonstrate non-inferiority against every frozen eligible top comparator, with all hard gates passing. Weighted scores are progress diagnostics only.",
+  "open_studio_context": "docs/sota/evidence/portfolio/open-studio-context.json",
+  "product_registry": "docs/sota/evidence/portfolio/products.json",
+  "schema_version": "1.0.0",
+  "title": "Portfolio SOTA Evidence Index"
+}

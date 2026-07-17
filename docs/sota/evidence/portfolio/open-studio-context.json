@@ -1,0 +1,19 @@
+{
+  "kind": "open-studio-context",
+  "limitations": [
+    "Partial or blocked implementation states are not shipped-capability proof.",
+    "Open Studio is excluded from technical scores, heatmap peer columns, and verdicts."
+  ],
+  "name": "Open Studio",
+  "product_id": "open-studio",
+  "role": "Shared desktop/IDE, Agent Studio, rubric, schema, release-verification, and governance context.",
+  "schema_version": "1.0.0",
+  "scored": false,
+  "sources": [
+    "IMPLEMENTATION_MATRIX.md",
+    "schemas/",
+    "scripts/lib/release-evidence.mjs",
+    "docs/platform-operating-cadence.md"
+  ],
+  "verdict": null
+}

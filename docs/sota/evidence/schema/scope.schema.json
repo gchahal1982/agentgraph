@@ -1,0 +1,223 @@
+{
+  "$id": "https://agentgraph.dev/sota/schema/scope.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "category_definition": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "commit_sha": {
+      "minLength": 1,
+      "pattern": "^[0-9a-f]{40}$",
+      "type": "string"
+    },
+    "cutoff": {
+      "minLength": 1,
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+      "type": "string"
+    },
+    "deployment_mode": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "discovery_passes": {
+      "items": {
+        "$id": "https://agentgraph.dev/sota/schema/discovery-pass.schema.json",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "completed_at": {
+            "minLength": 1,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "type": "string"
+          },
+          "new_eligible_count": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "pass_id": {
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pass_id",
+          "completed_at",
+          "new_eligible_count"
+        ],
+        "title": "Discovery-Pass evidence contract",
+        "type": "object"
+      },
+      "minItems": 0,
+      "type": "array"
+    },
+    "exclusion_rules": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 0,
+      "type": "array"
+    },
+    "frozen_at": {
+      "minLength": 1,
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+      "type": "string"
+    },
+    "inclusion_rules": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 0,
+      "type": "array"
+    },
+    "product_id": {
+      "minLength": 1,
+      "pattern": "^[a-z0-9][a-z0-9._-]*$",
+      "type": "string"
+    },
+    "query_log": {
+      "items": {
+        "$id": "https://agentgraph.dev/sota/schema/query.schema.json",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "channel": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "queried_at": {
+            "minLength": 1,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "type": "string"
+          },
+          "query": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "query",
+          "channel",
+          "queried_at"
+        ],
+        "title": "Query evidence contract",
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "repository": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "required_dimensions": {
+      "items": false,
+      "maxItems": 13,
+      "minItems": 13,
+      "prefixItems": [
+        {
+          "const": "architecture"
+        },
+        {
+          "const": "APIs"
+        },
+        {
+          "const": "auth/security"
+        },
+        {
+          "const": "reliability"
+        },
+        {
+          "const": "performance"
+        },
+        {
+          "const": "observability"
+        },
+        {
+          "const": "DX"
+        },
+        {
+          "const": "deployment/operations"
+        },
+        {
+          "const": "connectors/integrations"
+        },
+        {
+          "const": "agent UX"
+        },
+        {
+          "const": "human-in-loop"
+        },
+        {
+          "const": "evals"
+        },
+        {
+          "const": "domain workflows"
+        }
+      ],
+      "type": "array"
+    },
+    "schema_version": {
+      "minLength": 1,
+      "pattern": "^1\\.0\\.0$",
+      "type": "string"
+    },
+    "seed_competitors": {
+      "items": {
+        "minLength": 1,
+        "pattern": "^[a-z0-9][a-z0-9._-]*$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "source_channels": {
+      "items": {
+        "enum": [
+          "official-docs",
+          "repository",
+          "release-notes",
+          "api-reference",
+          "package-registry",
+          "benchmark",
+          "security-deployment",
+          "independent-evaluation"
+        ],
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "target_workflow": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "universe_closed": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schema_version",
+    "product_id",
+    "repository",
+    "frozen_at",
+    "cutoff",
+    "target_workflow",
+    "category_definition",
+    "deployment_mode",
+    "required_dimensions",
+    "seed_competitors",
+    "inclusion_rules",
+    "exclusion_rules",
+    "source_channels",
+    "query_log",
+    "discovery_passes",
+    "universe_closed"
+  ],
+  "title": "Scope evidence contract",
+  "type": "object"
+}

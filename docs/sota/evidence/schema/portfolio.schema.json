@@ -1,0 +1,197 @@
+{
+  "$id": "https://agentgraph.dev/sota/schema/portfolio.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "$id": "https://agentgraph.dev/sota/schema/portfolio-products.schema.json",
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "products"
+        },
+        "products": {
+          "contains": {
+            "properties": {
+              "scored": {
+                "const": true
+              }
+            },
+            "type": "object"
+          },
+          "items": {
+            "$id": "https://agentgraph.dev/sota/schema/portfolio-product.schema.json",
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "additionalProperties": false,
+            "properties": {
+              "category": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "dossier_path": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "name": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "order": {
+                "maximum": 6,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "product_id": {
+                "minLength": 1,
+                "pattern": "^[a-z0-9][a-z0-9._-]*$",
+                "type": "string"
+              },
+              "repository": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "scored": {
+                "const": true
+              }
+            },
+            "required": [
+              "product_id",
+              "name",
+              "repository",
+              "category",
+              "dossier_path",
+              "scored",
+              "order"
+            ],
+            "title": "Portfolio-Product evidence contract",
+            "type": "object"
+          },
+          "maxContains": 6,
+          "maxItems": 6,
+          "minContains": 6,
+          "minItems": 6,
+          "type": "array"
+        },
+        "schema_version": {
+          "minLength": 1,
+          "pattern": "^1\\.0\\.0$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "schema_version",
+        "products"
+      ],
+      "title": "Portfolio-Products evidence contract",
+      "type": "object"
+    },
+    {
+      "$id": "https://agentgraph.dev/sota/schema/portfolio-index-config.schema.json",
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "generated_path": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "const": "index-config"
+        },
+        "methodology": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "open_studio_context": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "product_registry": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "schema_version": {
+          "minLength": 1,
+          "pattern": "^1\\.0\\.0$",
+          "type": "string"
+        },
+        "title": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "schema_version",
+        "title",
+        "methodology",
+        "product_registry",
+        "open_studio_context",
+        "generated_path"
+      ],
+      "title": "Portfolio-Index-Config evidence contract",
+      "type": "object"
+    },
+    {
+      "$id": "https://agentgraph.dev/sota/schema/open-studio-context.schema.json",
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "open-studio-context"
+        },
+        "limitations": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 0,
+          "type": "array"
+        },
+        "name": {
+          "const": "Open Studio"
+        },
+        "product_id": {
+          "const": "open-studio"
+        },
+        "role": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "schema_version": {
+          "minLength": 1,
+          "pattern": "^1\\.0\\.0$",
+          "type": "string"
+        },
+        "scored": {
+          "const": false
+        },
+        "sources": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "verdict": {
+          "type": "null"
+        }
+      },
+      "required": [
+        "kind",
+        "schema_version",
+        "product_id",
+        "name",
+        "scored",
+        "verdict",
+        "role",
+        "sources",
+        "limitations"
+      ],
+      "title": "Open-Studio-Context evidence contract",
+      "type": "object"
+    }
+  ],
+  "title": "Portfolio records"
+}

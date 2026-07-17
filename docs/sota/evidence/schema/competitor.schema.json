@@ -1,0 +1,208 @@
+{
+  "$id": "https://agentgraph.dev/sota/schema/competitor.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "competitors": {
+      "items": {
+        "$id": "https://agentgraph.dev/sota/schema/competitor-record.schema.json",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "cohort": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "commercial": {
+            "type": "boolean"
+          },
+          "competitor_id": {
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "type": "string"
+          },
+          "deployment_modes": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "dimensions": {
+            "items": {
+              "enum": [
+                "architecture",
+                "APIs",
+                "auth/security",
+                "reliability",
+                "performance",
+                "observability",
+                "DX",
+                "deployment/operations",
+                "connectors/integrations",
+                "agent UX",
+                "human-in-loop",
+                "evals",
+                "domain workflows"
+              ],
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "eligibility": {
+            "enum": [
+              "included",
+              "excluded",
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "reason": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "minLength": 1,
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "competitor_id",
+          "name",
+          "cohort",
+          "eligibility",
+          "reason",
+          "deployment_modes",
+          "dimensions",
+          "sources"
+        ],
+        "title": "Competitor-Record evidence contract",
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "derivation_rule": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "eligibility_rules": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "product_id": {
+      "minLength": 1,
+      "pattern": "^[a-z0-9][a-z0-9._-]*$",
+      "type": "string"
+    },
+    "schema_version": {
+      "minLength": 1,
+      "pattern": "^1\\.0\\.0$",
+      "type": "string"
+    },
+    "top_sets": {
+      "items": {
+        "$id": "https://agentgraph.dev/sota/schema/top-set.schema.json",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "dimension_id": {
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "type": "string"
+          },
+          "frozen_at": {
+            "minLength": 1,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+            "type": "string"
+          },
+          "matched_result_ids": {
+            "items": {
+              "minLength": 1,
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "phase": {
+            "const": "post-measurement"
+          },
+          "rule_version": {
+            "minLength": 1,
+            "pattern": "^1\\.0\\.0$",
+            "type": "string"
+          },
+          "sha256": {
+            "minLength": 1,
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "top_comparators": {
+            "items": {
+              "minLength": 1,
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "unknown_candidates": {
+            "items": {
+              "minLength": 1,
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "type": "string"
+            },
+            "minItems": 0,
+            "type": "array"
+          }
+        },
+        "required": [
+          "dimension_id",
+          "phase",
+          "rule_version",
+          "matched_result_ids",
+          "top_comparators",
+          "unknown_candidates",
+          "sha256",
+          "frozen_at"
+        ],
+        "title": "Top-Set evidence contract",
+        "type": "object"
+      },
+      "minItems": 0,
+      "type": "array"
+    },
+    "universe_frozen_at": {
+      "minLength": 1,
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "product_id",
+    "universe_frozen_at",
+    "eligibility_rules",
+    "derivation_rule",
+    "competitors",
+    "top_sets"
+  ],
+  "title": "Competitor evidence contract",
+  "type": "object"
+}

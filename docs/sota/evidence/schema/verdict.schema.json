@@ -1,0 +1,216 @@
+{
+  "$id": "https://agentgraph.dev/sota/schema/verdict.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "adjudicated_at": {
+      "minLength": 1,
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$",
+      "type": "string"
+    },
+    "blockers": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 0,
+      "type": "array"
+    },
+    "dimensions": {
+      "items": {
+        "$id": "https://agentgraph.dev/sota/schema/dimension-verdict.schema.json",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "classification": {
+            "enum": [
+              "critical",
+              "meaningful",
+              "supporting"
+            ],
+            "type": "string"
+          },
+          "comparisons": {
+            "items": {
+              "$id": "https://agentgraph.dev/sota/schema/comparison.schema.json",
+              "$schema": "https://json-schema.org/draft/2020-12/schema",
+              "additionalProperties": false,
+              "properties": {
+                "ci_high": {
+                  "type": "number"
+                },
+                "ci_low": {
+                  "type": "number"
+                },
+                "competitor_id": {
+                  "minLength": 1,
+                  "pattern": "^[a-z0-9][a-z0-9._-]*$",
+                  "type": "string"
+                },
+                "decisive": {
+                  "type": "boolean"
+                },
+                "delta": {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "evidence_ids": {
+                  "items": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "minItems": 0,
+                  "type": "array"
+                },
+                "outcome": {
+                  "enum": [
+                    "lead",
+                    "tie",
+                    "non-inferior",
+                    "equivalent",
+                    "failure",
+                    "unknown",
+                    "restricted",
+                    "conflicting",
+                    "non-comparable"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "competitor_id",
+                "outcome",
+                "decisive",
+                "evidence_ids"
+              ],
+              "title": "Comparison evidence contract",
+              "type": "object"
+            },
+            "minItems": 0,
+            "type": "array"
+          },
+          "dimension_id": {
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "type": "string"
+          },
+          "top_set_frozen": {
+            "type": "boolean"
+          },
+          "top_set_sha256": {
+            "minLength": 1,
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dimension_id",
+          "classification",
+          "top_set_frozen",
+          "top_set_sha256",
+          "comparisons"
+        ],
+        "title": "Dimension-Verdict evidence contract",
+        "type": "object"
+      },
+      "minItems": 0,
+      "type": "array"
+    },
+    "eligible": {
+      "type": "boolean"
+    },
+    "hard_gates": {
+      "items": {
+        "$id": "https://agentgraph.dev/sota/schema/hard-gate.schema.json",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "evidence_ids": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 0,
+            "type": "array"
+          },
+          "gate_id": {
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pass",
+              "fail",
+              "unknown",
+              "restricted",
+              "stale"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "gate_id",
+          "status",
+          "evidence_ids"
+        ],
+        "title": "Hard-Gate evidence contract",
+        "type": "object"
+      },
+      "minItems": 0,
+      "type": "array"
+    },
+    "inconclusive_evidence": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 0,
+      "type": "array"
+    },
+    "independent_review": {
+      "type": "boolean"
+    },
+    "label": {
+      "enum": [
+        "SOTA",
+        "Not Yet SOTA"
+      ],
+      "type": "string"
+    },
+    "product_id": {
+      "minLength": 1,
+      "pattern": "^[a-z0-9][a-z0-9._-]*$",
+      "type": "string"
+    },
+    "reproducible": {
+      "type": "boolean"
+    },
+    "schema_version": {
+      "minLength": 1,
+      "pattern": "^1\\.0\\.0$",
+      "type": "string"
+    },
+    "weighted_progress": {
+      "maximum": 100,
+      "minimum": 0,
+      "type": "number"
+    }
+  },
+  "required": [
+    "schema_version",
+    "product_id",
+    "label",
+    "eligible",
+    "weighted_progress",
+    "dimensions",
+    "hard_gates",
+    "blockers",
+    "inconclusive_evidence",
+    "reproducible",
+    "independent_review",
+    "adjudicated_at"
+  ],
+  "title": "Verdict evidence contract",
+  "type": "object"
+}
