@@ -2,7 +2,7 @@
 
 **Assessment cutoff:** 2026-07-18
 **Repository:** https://github.com/gchahal1982/agentgraph
-**Assessed revision:** `f4f88b29298cd2d5121c6e27588af210e04e86c0` plus the local remediation working tree on `vorflux/agentgraph-sota-20260718`
+**Assessed revision:** base `f4f88b29298cd2d5121c6e27588af210e04e86c0` plus remediation commits on `vorflux/agentgraph-sota-20260718`
 **Verdict:** **Not Yet SOTA**
 **Confidence:** High for repository findings; medium for fast-moving competitor capability comparisons; low for unpublished commercial operating characteristics.
 
@@ -12,7 +12,7 @@ AgentGraph is a compact, understandable Python agent orchestration prototype wit
 
 It is not presently state of the art. Critical gates fail on durable-execution semantics, human approval, identity and tenant isolation, audit completeness, production observability and evaluation, distributed execution, interoperability, release proof, and matched comparative evidence. Several prominent repository claims are not supported by the implementation: the runtime does not emit audit records for every model/tool call; `Tool.requires_principal` is not enforced by `Tool.__call__`; handoff types and routing exist but are not integrated into runtime pause/resolve/resume; the API lets a bearer-token holder self-assert roles; and Postgres persistence does not provide worker leases, idempotency, or exactly-once/at-least-once execution controls.
 
-The local remediation is real but does not change this verdict. It adds a pinned root `dev` dependency group and corresponding lock entries, moves FastAPI's `RunBody` to module scope to fix body-model/schema behavior, and removes a malformed duplicate exception block. The working tree also contains lint-only export/slot ordering and whitespace changes. A fresh runtime run reportedly passed **81 tests before lint** in the current remediation session; that result is session-reported and has no retained run artifact in the repository, so independent reproduction is **unverified**. Full lint and SOTA verification are being rerun by the main agent and are **pending**, not passed.
+The remediation is real but does not change this verdict. It adds a pinned root `dev` dependency group and corresponding lock entries, moves FastAPI's `RunBody` to module scope to fix body-model/schema behavior, removes a malformed duplicate exception block, preserves the public `Graph.validate()` API, and includes lint-only export/slot ordering and whitespace changes. On the final branch head, fresh Python 3.11 validation passed both the runtime and server suites (**81 tests each**), Ruff, all **42** SOTA contract tests, and the canonical strict offline verifier. These local results do not replace retained CI artifacts, independent reproduction, or the missing architectural evidence gates.
 
 ## 1. Category and scope
 
@@ -39,11 +39,11 @@ This definition distinguishes orchestration runtimes from adjacent products:
 
 ### 1.2 Evaluation boundary
 
-Included: all 201 tracked files present at the assessed revision, current uncommitted remediation, runtime/core/SDK/server/CLI/LLM packages, seven vertical packages, examples, tests, Docker/Compose, UI, CI, and the SOTA evidence framework. Binary favicon content was inventoried but is not capability-bearing. Generated caches and `.venv` were excluded.
+Included: all 201 tracked files present at the base revision, the committed remediation branch, runtime/core/SDK/server/CLI/LLM packages, seven vertical packages, examples, tests, Docker/Compose, UI, CI, and the SOTA evidence framework. Binary favicon content was inventoried but is not capability-bearing. Generated caches and `.venv` were excluded.
 
 The repository scan covered approximately 17,772 rendered text lines (including `uv.lock` and JSON schemas), 117 tracked Python files, all package manifests, all workflows, all tests, and all current diffs. The repository had 13 commits and two author identities at cutoff. These are descriptive facts, not quality proxies.
 
-Excluded from demonstrated capability: README promises without executable evidence, hypothetical production adapters, hosted services not present here, compliance certifications, performance/scalability claims without benchmark artifacts, and the main agent's still-running lint/SOTA verification.
+Excluded from demonstrated capability: README promises without executable evidence, hypothetical production adapters, hosted services not present here, compliance certifications, performance/scalability claims without benchmark artifacts, and any validation not reproducible from the committed tree.
 
 ## 2. Method and hard gates
 
@@ -59,7 +59,7 @@ A SOTA verdict requires every gate below to pass. Unknown evidence cannot pass a
 
 | Gate | Requirement | Current result | Evidence |
 |---|---|---:|---|
-| G1 Reproducible release | Clean checkout, pinned toolchain, build/lint/type/test/security/SOTA checks, retained artifacts, tested SHA | **Fail** | Root dev pins are remediated locally, but lint/SOTA rerun is pending; CI uses `setup-uv@v3` with `latest`; mypy is non-blocking; no release artifact or SBOM/provenance |
+| G1 Reproducible release | Clean checkout, pinned toolchain, build/lint/type/test/security/SOTA checks, retained artifacts, tested SHA | **Fail** | Root dev pins and local test/lint/SOTA checks pass on the remediation branch, but CI uses `setup-uv@v3` with `latest`; mypy is non-blocking; no retained release artifact or SBOM/provenance |
 | G2 Durable correctness | Crash recovery, retries, cancellation, idempotency, concurrency control, replay/upgrade semantics, fault-injection proof | **Fail** | Per-node checkpoints exist; the rest is absent or unverified |
 | G3 Human control | Persisted interrupt, approval queue, authenticated reviewer, edit/reject/timeout/escalate, safe resume | **Fail** | Handoff datatypes exist; runtime/API integration is absent |
 | G4 Security/governance | Identity-bound roles, deny-path audit, tenant isolation, secrets controls, threat model, security tests | **Fail** | Shared bearer auth and node RBAC exist; caller-supplied roles, open mode, no tenancy/security suite |
@@ -92,7 +92,7 @@ Because all eight gates must pass and none demonstrably does, the only defensibl
 | Verticals | Seven installable packs: sales ops, support ops, compliance, recruiting, insurance, construction, healthcare; protocols and in-memory demo stores | Code + tests/examples | Packaged workflows are differentiated but production CRM/EHR/ATS/GRC/ticketing/project connectors are only suggested; outcome quality, safety, compliance, and real-system integration are unverified |
 | UI | Basic agents, run form, and audit pages | Code inspection | `useThreads()` calls `GET /api/threads`, while backend has no `GET /threads`; no approval inbox, graph authoring, trace view, evals, auth UX, or robust error handling |
 | Deployment | Dockerfiles, Compose with Postgres/server/seven services/UI, health endpoints | Static config | Images/tool installs are not digest pinned; containers run as root; no migrations, Kubernetes/Helm, autoscaling, rolling upgrade, backup/restore, secrets manager, or production test |
-| Quality system | 66 test functions visible in tracked tests; CI for Python 3.11/3.12; separate SOTA schemas/scripts/tests/workflows | Code inspection + session-reported run | CI typecheck is explicitly non-blocking; primary CI test invocation is narrow/ambiguous; no coverage threshold, mutation/fuzz/load/chaos/security tests; current full checks pending |
+| Quality system | 66 test functions visible in tracked tests; CI for Python 3.11/3.12; separate SOTA schemas/scripts/tests/workflows | Code inspection + fresh local validation | CI typecheck is explicitly non-blocking; primary CI test invocation is narrow/ambiguous; no coverage threshold, mutation/fuzz/load/chaos/security tests or retained final-SHA run artifact |
 | Licensing/community | Apache-2.0 text in `LICENSE`; public GitHub repository | File/API | GitHub API reported `NOASSERTION`; 0 stars/forks/watchers at cutoff; no published governance, support policy, security policy, changelog, or adoption proof |
 
 ### 3.2 Claim reconciliation
@@ -117,9 +117,9 @@ Because all eight gates must pass and none demonstrably does, the only defensibl
 | FastAPI body model | `RunBody` moved from inside `create_app()` to module scope, preserving fields and defaults | Implemented locally |
 | Duplicate exception cleanup | Malformed duplicate `except Exception` block in vertical registration removed | Implemented locally |
 | Lint-only cleanup | Export arrays, `__slots__`, and one blank line reordered/adjusted across local source files | Implemented locally; no capability change |
-| Runtime tests | 81 tests reportedly passed before lint in the current remediation run | Session-reported; retained log/hash **unverified** |
-| Full lint and SOTA verification | Main agent is rerunning these checks | **Pending** |
-| Independent reproduction | No clean-checkout report tied to the final tree | **Pending / unverified** |
+| Runtime and server tests | 81 tests passed in each fresh Python 3.11 project invocation on the final branch head | Passed locally; retained CI artifact absent |
+| Lint and SOTA verification | Ruff passed; 42 SOTA contract tests passed; canonical strict offline verifier passed in portfolio-skeleton mode | Passed locally |
+| Independent reproduction | No retained clean-checkout report tied to the final commit | **Unverified** |
 
 ## 4. Competitive landscape at cutoff
 
@@ -272,7 +272,7 @@ Abbreviations: **AG** AgentGraph; **LG** LangGraph/LangSmith; **CR** CrewAI; **M
 | Audit completeness | Run start/end, errors, allow decisions; model/tool/handoff/retry event enums mostly unused | Complete correlated lifecycle records, deny events, redaction, append-only integrity, export and retention | Core governance claim contradicted | L | P0 |
 | Human approval | Handoff interfaces and `__goto__`; no durable lifecycle/API | Persisted interrupt/approval entity, authenticated reviewer actions, timeout/escalation, edit/reject/resume | No real HITL control plane | XL | P0 |
 | Durable correctness | Per-node checkpoint after side effects; direct latest-thread resume | Transactional/outbox side-effect protocol, idempotency, leases/fencing, retries, cancellation, replay/version migrations, fault tests | Recovery can duplicate effects or race; semantics unspecified | XL | P0 |
-| Reproducible release gate | Local dev pins added; session-reported tests; lint/SOTA pending; mypy non-blocking | Fully pinned clean CI, all tests/lint/types/security/SOTA, artifacts, coverage, SBOM/signing/provenance | Release cannot be independently certified | M | P0 |
+| Reproducible release gate | Local dev pins and tests/lint/SOTA pass; mypy remains non-blocking; no retained artifact | Fully pinned clean CI, all tests/lint/types/security/SOTA, artifacts, coverage, SBOM/signing/provenance | Release cannot be independently certified | M | P0 |
 | API run lifecycle | Synchronous run only; no get/cancel/resume/approve/stream; detailed exceptions exposed | Versioned asynchronous run API with idempotency, status, cancel, resume, SSE/WebSocket, webhooks, stable errors | Not operable for long-running agents | L | P1 |
 | Distributed execution | No queue/workers/backpressure/leases | Horizontally scalable workers, admission control, fairness, retries/DLQ, autoscaling, ownership fencing | Postgres storage alone is not multi-node orchestration | XL | P1 |
 | Observability | Custom node spans to structlog | OpenTelemetry model/tool/node/run spans, metrics/log correlation, exporters, dashboards, redaction, sampling | No production telemetry plane | L | P1 |
@@ -383,11 +383,11 @@ Populate the repository's product evidence roots. Freeze comparator versions/ima
 - The FastAPI end-to-end test starts registered verticals with an explicit test provider and runs `qualify_lead` through HTTP.
 - SQLite and in-memory persistence are exercised; Postgres code exists.
 - SOTA schema tests cover deterministic scoring/verdict behavior and offline contract validation.
-- The current session reports 81 passing tests before lint after remediation; retained proof is **unverified**.
+- Fresh Python 3.11 validation on the final branch head passed 81 runtime tests, 81 server tests, Ruff, 42 SOTA contract tests, and the canonical strict offline verifier in portfolio-skeleton mode.
 
 ### 11.2 Evidence absent or pending
 
-- Full final-tree lint and SOTA verification: **pending** with main agent.
+- Retained CI artifacts independently reproducing the final-commit local validation: absent.
 - Clean environment reproduction tied to a final SHA: absent.
 - Postgres live integration, restart, contention, failover, migration, backup/restore: absent.
 - Crash/fault injection, retries, cancellation, idempotent side effects, worker concurrency: absent.
@@ -473,6 +473,6 @@ Core source URLs:
 
 **Not Yet SOTA.**
 
-AgentGraph has a promising differentiator—seven domain-oriented packs over one small typed runtime—and demonstrable happy-path foundations. It does not meet the category's critical evidence gates. The most serious blockers are not missing polish: they are unsafe identity/role binding, unenforced tool metadata, incomplete audit, non-integrated human approval, unspecified distributed/durable side-effect semantics, and absent matched frontier evidence. The current remediation improves build reproducibility and fixes a FastAPI schema defect plus malformed exception handling, but full lint/SOTA verification remains pending and cannot convert these architectural gaps into passes.
+AgentGraph has a promising differentiator—seven domain-oriented packs over one small typed runtime—and demonstrable happy-path foundations. It does not meet the category's critical evidence gates. The most serious blockers are not missing polish: they are unsafe identity/role binding, unenforced tool metadata, incomplete audit, non-integrated human approval, unspecified distributed/durable side-effect semantics, and absent matched frontier evidence. The remediation improves build reproducibility, fixes a FastAPI schema defect and malformed exception handling, preserves the public graph-validation API, and passes fresh local tests/lint/SOTA verification; those results cannot convert the architectural gaps into passes.
 
 The verdict can change only after the P0/P1 exit evidence is retained and independently reproducible. A high weighted feature score, more vertical templates, or popularity growth would not by itself qualify. SOTA requires AgentGraph to demonstrate non-inferiority or leadership on every critical dimension against the frozen top comparator set with all hard gates passing. That evidence does not exist today.
