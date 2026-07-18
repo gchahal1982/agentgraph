@@ -3,6 +3,7 @@
 Use the `GraphBuilder` fluent API to construct graphs, then `graph.compile()`
 to produce a `Graph` ready for the runtime.
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -29,7 +30,7 @@ class Graph(BaseModel):
 
     model_config = {"arbitrary_types_allowed": True}
 
-    def validate(self) -> None:
+    def validate(self) -> None:  # type: ignore[override]
         if self.entrypoint not in self.nodes:
             raise GraphError(f"Entrypoint {self.entrypoint!r} is not a node")
         for e in self.static_edges:
@@ -111,9 +112,7 @@ class GraphBuilder:
     ) -> GraphBuilder:
         if source not in self._nodes:
             raise GraphError(f"Cannot add conditional edge from unknown node {source!r}")
-        self._cond.append(
-            ConditionalEdge(source=source, route=route, description=description)
-        )
+        self._cond.append(ConditionalEdge(source=source, route=route, description=description))
         return self
 
     # --- meta ---

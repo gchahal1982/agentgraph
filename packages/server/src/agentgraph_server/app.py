@@ -131,6 +131,8 @@ def create_app(state: AppState | None = None, *, register_verticals: bool = True
 
     auth = [Depends(require_api_key)]
 
+    # --- public health checks (no auth) ---
+
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:
         return {"status": "ok"}

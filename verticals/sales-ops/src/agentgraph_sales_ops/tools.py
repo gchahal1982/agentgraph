@@ -5,6 +5,7 @@ to `set_crm`). The default `InMemoryCRM` implements the `CRM` protocol; in
 production you implement the same protocol against HubSpot, Salesforce, or
 Pipedrive and inject it with `set_crm(...)`.
 """
+
 from __future__ import annotations
 
 import re
@@ -18,7 +19,9 @@ class CRM(Protocol):
     """A pluggable CRM backend. Implementations may wrap HubSpot, Salesforce,
     or Pipedrive. The default `InMemoryCRM` implements this protocol."""
 
-    def get(self, email: str | None = None, *, account_id: str | None = None) -> dict[str, Any] | None: ...
+    def get(
+        self, email: str | None = None, *, account_id: str | None = None
+    ) -> dict[str, Any] | None: ...
     def upsert(self, lead: dict[str, Any]) -> dict[str, Any]: ...
     def list_accounts(self) -> list[dict[str, Any]]: ...
     def activities(self, account_id: str, *, limit: int = 10) -> list[dict[str, Any]]: ...
@@ -45,7 +48,9 @@ class InMemoryCRM:
                     {"type": "contact_added", "at": 0, "detail": c["email"]}
                 )
 
-    def get(self, email: str | None = None, *, account_id: str | None = None) -> dict[str, Any] | None:
+    def get(
+        self, email: str | None = None, *, account_id: str | None = None
+    ) -> dict[str, Any] | None:
         if email is not None:
             aid = self._by_email.get(email.lower())
             return self._accounts.get(aid) if aid else None
@@ -126,7 +131,7 @@ async def score_lead(
     timeline_months: int = 0,
     is_referral: bool = False,
 ) -> dict[str, JSONValue]:
-    score = 0
+    score = 0.0
     score += min(company_size / 10, 30)  # up to 30 points for size
     if has_budget:
         score += 25
@@ -136,7 +141,14 @@ async def score_lead(
         score += 10
     if is_referral:
         score += 15
-    return {"score": int(score), "components": {"size": company_size, "industry": industry, "timeline_months": timeline_months}}
+    return {
+        "score": int(score),
+        "components": {
+            "size": company_size,
+            "industry": industry,
+            "timeline_months": timeline_months,
+        },
+    }
 
 
 @tool(
@@ -170,7 +182,9 @@ async def draft_email(
     }
 
 
-@tool(description="Hand the lead off to a human sales rep; signals a transition out of the agent node.")
+@tool(
+    description="Hand the lead off to a human sales rep; signals a transition out of the agent node."
+)
 async def handoff_to_rep(
     ctx: ToolContext,
     *,

@@ -12,7 +12,7 @@ Verdicts use exactly **SOTA** or **Not Yet SOTA**. **Inconclusive evidence** is 
 
 | Product | Category | Repository | Dossier | Evidence state |
 | --- | --- | --- | --- | --- |
-| AgentGraph | agent orchestration runtime | `gchahal1982/agentgraph` | [docs/sota/agentgraph-sota-dossier.md](agentgraph-sota-dossier.md) | Task 3 evidence pending |
+| AgentGraph | agent orchestration runtime | `gchahal1982/agentgraph` | [docs/sota/agentgraph-sota-dossier.md](agentgraph-sota-dossier.md) | Dossier available |
 | PixelJury | local-first visual QA | `gchahal1982/pixeljury` | [docs/sota/pixeljury-sota-dossier.md](pixeljury-sota-dossier.md) | Task 3 evidence pending |
 | AgentFlow | enterprise AI workflow automation | `gchahal1982/agentfree` | [docs/sota/agentfree-sota-dossier.md](agentfree-sota-dossier.md) | Task 3 evidence pending |
 | DocOS | document intelligence | `gchahal1982/DocOS` | [docs/sota/docos-sota-dossier.md](docos-sota-dossier.md) | Task 3 evidence pending |
