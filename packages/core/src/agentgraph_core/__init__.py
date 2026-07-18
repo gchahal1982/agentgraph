@@ -18,6 +18,7 @@ from agentgraph_core.ids import new_id, new_run_id, new_thread_id
 from agentgraph_core.memory import InMemoryMemory, Memory
 from agentgraph_core.observability import NoopTracer, Tracer, span, trace
 from agentgraph_core.rbac import Permission, Principal, RbacRole
+from agentgraph_core.redaction import redact_sensitive
 from agentgraph_core.storage import (
     audit_log_from_url,
     default_storage_url,
@@ -56,6 +57,7 @@ __all__ = [
     "new_id",
     "new_run_id",
     "new_thread_id",
+    "redact_sensitive",
     "span",
     "sqlite_db_path",
     "tool",

@@ -72,7 +72,7 @@ class Node(BaseModel):
         except Exception as e:
             if self.swallow_errors:
                 return NodeResult(
-                    error=f"{type(e).__name__}: {e}",
+                    error=type(e).__name__,
                     next=self.on_error,
                 )
             raise

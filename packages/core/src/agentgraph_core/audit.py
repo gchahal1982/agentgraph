@@ -21,9 +21,10 @@ from pathlib import Path
 from typing import Any
 
 import orjson as _json
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from agentgraph_core.ids import new_id
+from agentgraph_core.redaction import redact_sensitive
 from agentgraph_core.types import JSONValue
 
 
@@ -50,6 +51,19 @@ class AuditEvent(BaseModel):
     actor: str  # node name, tool name, "system", etc.
     payload: dict[str, JSONValue] = Field(default_factory=dict)
     metadata: dict[str, JSONValue] = Field(default_factory=dict)
+
+    @field_validator("payload", "metadata", mode="before")
+    @classmethod
+    def redact_credentials(cls, value: Any) -> dict[str, JSONValue]:
+        redacted = redact_sensitive(value or {})
+        if not isinstance(redacted, dict):
+            raise ValueError("audit payloads and metadata must be objects")
+        return redacted
+
+
+def _redacted_event(event: AuditEvent) -> AuditEvent:
+    """Revalidate a copy so mutations cannot bypass boundary redaction."""
+    return AuditEvent.model_validate(event.model_dump(mode="python"))
 
 
 class AuditLog(ABC):
@@ -79,7 +93,7 @@ class InMemoryAuditLog(AuditLog):
         self._events: list[AuditEvent] = []
 
     async def write(self, event: AuditEvent) -> None:
-        self._events.append(event)
+        self._events.append(_redacted_event(event))
 
     async def query(
         self, *, run_id: str | None = None, thread_id: str | None = None, limit: int = 100
@@ -132,6 +146,7 @@ class SQLiteAuditLog(AuditLog):
         self._conn.commit()
 
     async def write(self, event: AuditEvent) -> None:
+        event = _redacted_event(event)
         async with self._lock:
             await asyncio.to_thread(self._write_sync, event)
 
@@ -175,9 +190,10 @@ class SQLiteAuditLog(AuditLog):
         params.append(limit)
         rows = self._conn.execute(
             f"SELECT id, ts, run_id, thread_id, principal_id, action, actor, payload, metadata "
-            f"FROM audit_events{where} ORDER BY ts ASC LIMIT ?",
+            f"FROM audit_events{where} ORDER BY ts DESC LIMIT ?",
             params,
         ).fetchall()
+        rows.reverse()
         return [_row_to_event(r) for r in rows]
 
     async def close(self) -> None:
@@ -238,6 +254,7 @@ class PostgresAuditLog(AuditLog):
             )
 
     async def write(self, event: AuditEvent) -> None:
+        event = _redacted_event(event)
         pool = await self._ensure_pool()
         async with pool.acquire() as conn:
             await conn.execute(
@@ -272,9 +289,10 @@ class PostgresAuditLog(AuditLog):
         async with pool.acquire() as conn:
             rows = await conn.fetch(
                 f"SELECT id, ts, run_id, thread_id, principal_id, action, actor, payload, metadata "
-                f"FROM audit_events{where} ORDER BY ts ASC LIMIT ${len(params)}",
+                f"FROM audit_events{where} ORDER BY ts DESC LIMIT ${len(params)}",
                 *params,
             )
+        rows = list(reversed(rows))
         return [
             AuditEvent(
                 id=r["id"],

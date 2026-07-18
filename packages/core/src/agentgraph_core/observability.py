@@ -18,6 +18,8 @@ from typing import Any
 
 import structlog
 
+from agentgraph_core.redaction import redact_sensitive
+
 _log = structlog.get_logger("agentgraph.obs")
 
 
@@ -89,16 +91,18 @@ class StructLogTracer(Tracer):
         self._level = level
 
     def on_span_end(self, span: Span) -> None:
-        payload = {
-            "span_id": span.span_id,
-            "parent_id": span.parent_id,
-            "trace_id": span.trace_id,
-            "name": span.name,
-            "duration_ms": round(span.duration_ms, 3),
-            "status": span.status,
-            "error": span.error,
-            **span.attributes,
-        }
+        payload = redact_sensitive(
+            {
+                "span_id": span.span_id,
+                "parent_id": span.parent_id,
+                "trace_id": span.trace_id,
+                "name": span.name,
+                "duration_ms": round(span.duration_ms, 3),
+                "status": span.status,
+                "error": span.error,
+                **span.attributes,
+            }
+        )
         if span.status == "error":
             self._log.error(span.name, **payload)
         else:
@@ -118,8 +122,10 @@ def span(name: str, **attrs: Any) -> Iterator[Span]:
     token = _current_span.set(s)
     try:
         yield s
-    except Exception as e:
-        s.fail(f"{type(e).__name__}: {e}")
+    except Exception as exc:
+        # Exception messages may contain credentials or customer data. Record
+        # only the exception class; callers can correlate details by trace ID.
+        s.fail(type(exc).__name__)
         raise
     finally:
         s.finish()

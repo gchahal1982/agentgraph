@@ -4,7 +4,12 @@ from __future__ import annotations
 import pytest
 from agentgraph_core.audit import AuditAction, InMemoryAuditLog
 from agentgraph_core.rbac import Principal, RbacRole
-from agentgraph_runtime.checkpoint import InMemoryCheckpointStore
+from agentgraph_runtime.checkpoint import (
+    Checkpoint,
+    CheckpointStore,
+    InMemoryCheckpointStore,
+    SQLiteCheckpointStore,
+)
 from agentgraph_runtime.graph import GraphBuilder
 from agentgraph_runtime.node import END, NodeResult, node
 from agentgraph_runtime.runtime import Runtime, RuntimeConfig
@@ -61,16 +66,88 @@ async def test_audit_events_written() -> None:
 
 
 @pytest.mark.asyncio
-async def test_checkpoint_store_saves_state() -> None:
+async def test_checkpoint_store_saves_terminal_state() -> None:
     store = InMemoryCheckpointStore()
     g = _two_node_graph()
     rt = Runtime(RuntimeConfig(checkpoint_store=store))
     state = await rt.run(g, input={})
     cps = await store.list_for_thread(state.run.thread_id)
-    # We checkpoint after each node, so at least 2.
-    assert len(cps) >= 2
+    assert len(cps) == 2
     last = cps[-1]
-    assert last.node in ("ask", END)
+    assert last.node == "ask"
+    assert last.state["finished"] is True
+
+
+@pytest.mark.asyncio
+async def test_checkpoint_store_list_threads_default_preserves_subclass_compatibility() -> None:
+    class LegacyStore(CheckpointStore):
+        async def save(self, checkpoint: Checkpoint) -> None:
+            return None
+
+        async def load_latest(self, run_id: str) -> Checkpoint | None:
+            return None
+
+        async def list_for_thread(self, thread_id: str) -> list[Checkpoint]:
+            return []
+
+    store = LegacyStore()
+    assert await store.list_threads() == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("backend", ["memory", "sqlite"])
+async def test_checkpoint_store_lists_recent_threads(backend: str, tmp_path) -> None:
+    store = (
+        InMemoryCheckpointStore()
+        if backend == "memory"
+        else SQLiteCheckpointStore(tmp_path / "checkpoints.db")
+    )
+    try:
+        await store.save(
+            Checkpoint(
+                run_id="run-1",
+                thread_id="thread-1",
+                node="first",
+                state={},
+                created_at=1.0,
+            )
+        )
+        await store.save(
+            Checkpoint(
+                run_id="run-2",
+                thread_id="thread-1",
+                node="latest",
+                state={},
+                created_at=2.0,
+            )
+        )
+        await store.save(
+            Checkpoint(
+                run_id="run-3",
+                thread_id="thread-2",
+                node="newest",
+                state={},
+                created_at=3.0,
+            )
+        )
+
+        threads = await store.list_threads(limit=1)
+        assert threads == [
+            {
+                "thread_id": "thread-2",
+                "latest_run_id": "run-3",
+                "latest_node": "newest",
+                "updated_at": 3.0,
+                "run_count": 1,
+                "checkpoint_count": 1,
+            }
+        ]
+        thread_one = (await store.list_threads(limit=2))[1]
+        assert thread_one["latest_run_id"] == "run-2"
+        assert thread_one["run_count"] == 2
+        assert thread_one["checkpoint_count"] == 2
+    finally:
+        await store.close()
 
 
 @pytest.mark.asyncio
@@ -154,4 +231,6 @@ async def test_swallow_error_routes_to_on_error() -> None:
     rt = Runtime()
     state = await rt.run(g, input={})
     assert state.values.get("recovered") is True
-    assert state.error is not None
+    assert state.error is None
+    checkpoints = await rt.config.checkpoint_store.list_for_thread(state.run.thread_id)
+    assert "boom" not in str([checkpoint.state for checkpoint in checkpoints])

@@ -1,0 +1,28 @@
+{
+  "benchmark_id": "agentgraph-local-runtime-v1",
+  "dataset_license": "CC0-1.0 synthetic fixtures",
+  "minimum_timed_samples": 30,
+  "protocol_version": "1.0.0",
+  "seed": 20260718,
+  "suites": [
+    {
+      "id": "linear-runtime",
+      "invariants": [
+        "all nodes execute exactly once",
+        "run finishes without error",
+        "one checkpoint is persisted per node",
+        "run.start and run.end are audited"
+      ],
+      "node_counts": [1, 8, 32],
+      "warmup_samples": 3
+    },
+    {
+      "id": "security-contract",
+      "invariants": [
+        "privileged HTTP routes reject missing bearer credentials",
+        "audit payloads redact credential-shaped values",
+        "internal execution errors are not returned to clients"
+      ]
+    }
+  ]
+}

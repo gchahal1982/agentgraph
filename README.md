@@ -196,8 +196,9 @@ make serve     # launch server on :8080
 The workspace uses [uv](https://github.com/astral-sh/uv) for fast,
 deterministic installs. CI runs against Python 3.11 and 3.12.
 
-> Tests run via `./scripts/test.sh`, which uses `uv run --with pytest`. This
-> avoids a broken system-level pytest if one is present on your `PATH`.
+> Tests run via `./scripts/test.sh`, which uses the frozen root development
+> dependency group. This avoids a broken system-level pytest if one is present
+> on your `PATH` and keeps local and CI tooling aligned.
 
 ## Configuration
 
@@ -209,7 +210,8 @@ All configuration is via environment variables.
 | `AG_LLM_MODEL` | Model name | provider default (e.g. `gpt-4o-mini`) |
 | `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | Provider key | — (required for that provider) |
 | `AG_STORAGE_URL` | `sqlite:///path.db` or `postgresql://...` | SQLite under the data dir |
-| `AG_API_KEY` | Bearer token required by the HTTP API | — (unset = open mode + warning) |
+| `AG_API_KEY` | Bearer token required by the HTTP API | — (required; server fails closed when unset) |
+| `AG_ALLOW_INSECURE_NO_AUTH` | Explicitly allow unauthenticated local development | `0` (set to `1` locally only) |
 
 `default_llm_config()` raises a clear error at run time if the selected
 provider needs a key that is not set, so a misconfigured deployment fails
@@ -219,8 +221,10 @@ fast instead of producing silent or fake output.
 
 - The HTTP server requires a bearer token (`AG_API_KEY`) on every privileged
   route. Health checks (`/healthz`, `/readyz`) are public for load balancers.
-  If `AG_API_KEY` is unset the server starts in open mode and logs a loud
-  warning — never expose it that way.
+  Startup fails closed when `AG_API_KEY` is unset. For local-only development,
+  you may explicitly set `AG_ALLOW_INSECURE_NO_AUTH=1`; never use that override
+  on a host exposed to a network. If both variables are set, the API key takes
+  precedence and authentication remains enabled.
 - RBAC is enforced in the runtime: nodes that touch PII/PHI declare a required
   permission, and a run without a principal holding it is rejected.
 - The audit log records every model call, tool call, and policy decision with
