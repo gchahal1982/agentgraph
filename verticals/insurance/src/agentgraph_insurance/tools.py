@@ -1,4 +1,5 @@
 """Insurance tools: claims, policy lookup, risk scoring, adjuster assignment."""
+
 from __future__ import annotations
 
 from collections.abc import Iterable
@@ -19,7 +20,7 @@ class InMemoryClaimStore:
         self._claims: dict[str, dict[str, Any]] = {}
 
     def open(self, claim: dict[str, Any]) -> dict[str, Any]:
-        cid = claim.setdefault("id", f"clm_{len(self._claims)+1:05d}")
+        cid = claim.setdefault("id", f"clm_{len(self._claims) + 1:05d}")
         claim["status"] = claim.get("status", "open")
         self._claims[cid] = claim
         return claim
@@ -90,11 +91,15 @@ async def open_claim(
 
 
 @tool(description="Update fields on an existing claim (status, severity, adjuster, notes).")
-async def update_claim(ctx: ToolContext, claim_id: str, **fields: JSONValue) -> dict[str, JSONValue]:
+async def update_claim(
+    ctx: ToolContext, claim_id: str, **fields: JSONValue
+) -> dict[str, JSONValue]:
     return {"claim": _claims.update(claim_id, **fields)}
 
 
-@tool(description="Score a risk 0-100 (higher = riskier). Uses amount, loss_type, and prior claims.")
+@tool(
+    description="Score a risk 0-100 (higher = riskier). Uses amount, loss_type, and prior claims."
+)
 async def score_risk(
     ctx: ToolContext,
     *,
@@ -103,17 +108,22 @@ async def score_risk(
     prior_claims_count: int = 0,
     fraud_indicators: int = 0,
 ) -> dict[str, JSONValue]:
-    score = 0
+    score = 0.0
     score += min(estimated_amount_usd / 1000.0, 40)
-    score += {"auto": 5, "property": 10, "liability": 25, "life": 30, "health": 15}.get(loss_type, 10)
+    score += {"auto": 5, "property": 10, "liability": 25, "life": 30, "health": 15}.get(
+        loss_type, 10
+    )
     score += min(prior_claims_count * 5, 20)
     score += min(fraud_indicators * 15, 30)
-    return {"score": int(min(score, 100)), "factors": {
-        "amount": estimated_amount_usd,
-        "type": loss_type,
-        "prior_claims": prior_claims_count,
-        "fraud_indicators": fraud_indicators,
-    }}
+    return {
+        "score": int(min(score, 100)),
+        "factors": {
+            "amount": estimated_amount_usd,
+            "type": loss_type,
+            "prior_claims": prior_claims_count,
+            "fraud_indicators": fraud_indicators,
+        },
+    }
 
 
 @tool(description="Look up a policy by id. Returns holder, coverage, and exclusions.")
@@ -129,7 +139,9 @@ async def assign_adjuster(
     return {"claim": _claims.update(claim_id, adjuster_id=adjuster_id, assignment_reason=reason)}
 
 
-@tool(description="Escalate a claim to a senior human underwriter. Signals transition out of the agent node.")
+@tool(
+    description="Escalate a claim to a senior human underwriter. Signals transition out of the agent node."
+)
 async def escalate_to_human(
     ctx: ToolContext, *, claim_id: str, reason: str, priority: str = "normal"
 ) -> dict[str, JSONValue]:

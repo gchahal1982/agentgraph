@@ -4,6 +4,7 @@ An `Edge` is a static transition: when node A finishes, go to node B.
 A `ConditionalEdge` evaluates a function on the current state and returns
 the next node name (or `END`).
 """
+
 from __future__ import annotations
 
 import inspect
@@ -40,5 +41,5 @@ class ConditionalEdge(BaseModel):
     async def decide(self, state: GraphState) -> str:
         result = self.route(state)
         if inspect.isawaitable(result):
-            result = await result  # type: ignore[assignment]
+            result = await result
         return str(result)

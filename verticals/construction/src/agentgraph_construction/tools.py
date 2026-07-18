@@ -1,4 +1,5 @@
 """Construction tools: RFIs, submittals, daily log, project lookup."""
+
 from __future__ import annotations
 
 from collections.abc import Iterable
@@ -10,6 +11,12 @@ from agentgraph_core.types import JSONValue
 
 class ProjectStore(Protocol):
     def get(self, project_id: str) -> dict[str, Any] | None: ...
+
+    def save_rfi(self, rfi: dict[str, Any]) -> dict[str, Any]: ...
+
+    def save_submittal(self, submittal: dict[str, Any]) -> dict[str, Any]: ...
+
+    def append_log(self, project_id: str, entry: dict[str, Any]) -> dict[str, Any]: ...
 
 
 class InMemoryProjectStore:
@@ -27,12 +34,12 @@ class InMemoryProjectStore:
         return self._projects.get(project_id)
 
     def save_rfi(self, rfi: dict[str, Any]) -> dict[str, Any]:
-        rid = rfi.setdefault("id", f"rfi_{len(self._rfis)+1:04d}")
+        rid = rfi.setdefault("id", f"rfi_{len(self._rfis) + 1:04d}")
         self._rfis[rid] = rfi
         return rfi
 
     def save_submittal(self, submittal: dict[str, Any]) -> dict[str, Any]:
-        sid = submittal.setdefault("id", f"sub_{len(self._submittals)+1:04d}")
+        sid = submittal.setdefault("id", f"sub_{len(self._submittals) + 1:04d}")
         self._submittals[sid] = submittal
         return submittal
 
@@ -61,7 +68,7 @@ async def create_rfi(
     due_date: str,
 ) -> dict[str, JSONValue]:
     if hasattr(_store, "save_rfi"):
-        rfi = _store.save_rfi(  # type: ignore[attr-defined]
+        rfi = _store.save_rfi(
             {
                 "project_id": project_id,
                 "subject": subject,
@@ -91,8 +98,13 @@ async def review_submittal(
     rationale: str,
 ) -> dict[str, JSONValue]:
     if hasattr(_store, "save_submittal"):
-        sub = _store.save_submittal(  # type: ignore[attr-defined]
-            {"submittal_id": submittal_id, "spec_reference": spec_reference, "verdict": verdict, "rationale": rationale}
+        sub = _store.save_submittal(
+            {
+                "submittal_id": submittal_id,
+                "spec_reference": spec_reference,
+                "verdict": verdict,
+                "rationale": rationale,
+            }
         )
         return {"submittal": sub}
     return {"error": "submittal_storage_unavailable"}
@@ -108,8 +120,14 @@ async def append_daily_log(
     crew_size: int = 0,
 ) -> dict[str, JSONValue]:
     if hasattr(_store, "append_log"):
-        log = _store.append_log(  # type: ignore[attr-defined]
-            project_id, {"entry": entry, "weather": weather, "crew_size": crew_size, "by": ctx.principal_id or "system"}
+        log = _store.append_log(
+            project_id,
+            {
+                "entry": entry,
+                "weather": weather,
+                "crew_size": crew_size,
+                "by": ctx.principal_id or "system",
+            },
         )
         return {"log": log}
     return {"error": "log_unavailable"}
@@ -121,8 +139,12 @@ async def lookup_project(ctx: ToolContext, project_id: str) -> dict[str, JSONVal
     return {"project": p} if p else {"error": "not_found", "project_id": project_id}
 
 
-@tool(description="Escalate an issue to the project manager; signals a transition out of the agent node.")
-async def escalate_to_pm(ctx: ToolContext, *, project_id: str, reason: str, priority: str = "normal") -> dict[str, JSONValue]:
+@tool(
+    description="Escalate an issue to the project manager; signals a transition out of the agent node."
+)
+async def escalate_to_pm(
+    ctx: ToolContext, *, project_id: str, reason: str, priority: str = "normal"
+) -> dict[str, JSONValue]:
     ctx.state["__goto__"] = "pm_review"
     ctx.state["pm_escalation"] = {"project_id": project_id, "reason": reason, "priority": priority}
     return {"escalated": True, "reason": reason}
