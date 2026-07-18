@@ -29,14 +29,14 @@ from agentgraph_compliance.tools import (
 )
 
 __all__ = [
-    "fetch_evidence",
-    "list_controls",
-    "attach_evidence",
-    "flag_risk",
-    "signoff",
-    "policy_review_graph",
-    "audit_report_graph",
-    "build_compliance_runner",
     "COMPLIANCE_ROLES",
     "ComplianceService",
+    "attach_evidence",
+    "audit_report_graph",
+    "build_compliance_runner",
+    "fetch_evidence",
+    "flag_risk",
+    "list_controls",
+    "policy_review_graph",
+    "signoff",
 ]

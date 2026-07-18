@@ -4,6 +4,7 @@ A `Tool` is a typed, schema-validated function the runtime can dispatch
 agents to call. The runtime handles argument validation, error capture, audit
 trails, and (optionally) policy enforcement.
 """
+
 from __future__ import annotations
 
 import inspect
@@ -17,7 +18,10 @@ from agentgraph_core.errors import ToolError
 from agentgraph_core.types import JSONValue, ToolResult
 
 # A tool handler is either sync or async. Async is preferred for I/O work.
-ToolHandler = Callable[..., "str | dict[str, JSONValue] | ToolResult | Awaitable[ToolResult | str | dict[str, JSONValue]]"]
+ToolHandler = Callable[
+    ...,
+    "str | dict[str, JSONValue] | ToolResult | Awaitable[ToolResult | str | dict[str, JSONValue]]",
+]
 
 
 @dataclass(slots=True)
@@ -55,11 +59,13 @@ class Tool(BaseModel):
         try:
             result = self.handler(ctx, **kwargs)
             if inspect.isawaitable(result):
-                result = await result  # type: ignore[assignment]
+                result = await result
         except ToolError as e:
             return ToolResult(tool_call_id="", name=self.name, content="", error=str(e))
         except Exception as e:
-            return ToolResult(tool_call_id="", name=self.name, content="", error=f"{type(e).__name__}: {e}")
+            return ToolResult(
+                tool_call_id="", name=self.name, content="", error=f"{type(e).__name__}: {e}"
+            )
 
         if isinstance(result, ToolResult):
             return result
@@ -139,7 +145,7 @@ def tool(
             ann = hints.get(p.name, str)
             default = p.default if p.default is not inspect.Parameter.empty else ...
             fields[p.name] = (ann, default)
-        model = create_model(f"{fn.__name__}_Args", **fields)  # type: ignore[call-overload]
+        model = create_model(f"{fn.__name__}_Args", **fields)
         schema = model.model_json_schema()
         schema.pop("title", None)
         tool_name = name or fn.__name__

@@ -34,6 +34,13 @@ from agentgraph_server.registry import AgentRegistry, RegisteredAgent
 _log = structlog.get_logger("agentgraph.server")
 
 
+class RunBody(BaseModel):
+    agent: str
+    input: dict[str, JSONValue] = Field(default_factory=dict)
+    principal_id: str | None = None
+    principal_roles: list[str] = Field(default_factory=list)
+
+
 class AppState:
     """Container for app-scoped singletons (registry + durable storage)."""
 
@@ -96,14 +103,6 @@ def _register_verticals(state: AppState) -> None:
                     graph=graph,
                 )
             )
-        except Exception as e:  # noqa: BLE001
-            _log.warning(
-                "vertical_registration_skipped",
-                vertical=module_name,
-                error=f"{type(e).__name__}: {e}",
-            )
-                )
-            )
         except Exception as e:
             _log.warning(
                 "vertical_registration_skipped",
@@ -149,14 +148,6 @@ def create_app(state: AppState | None = None, *, register_verticals: bool = True
             )
 
     auth = [Depends(require_api_key)]
-
-    # --- models ---
-
-    class RunBody(BaseModel):
-        agent: str
-        input: dict[str, JSONValue] = Field(default_factory=dict)
-        principal_id: str | None = None
-        principal_roles: list[str] = Field(default_factory=list)
 
     # --- public health checks (no auth) ---
 

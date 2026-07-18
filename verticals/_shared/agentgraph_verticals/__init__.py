@@ -13,4 +13,4 @@ and durable storage (`AG_STORAGE_URL`).
 """
 from agentgraph_verticals.base import VerticalMeta, VerticalPack, default_meta
 
-__all__ = ["VerticalPack", "VerticalMeta", "default_meta"]
+__all__ = ["VerticalMeta", "VerticalPack", "default_meta"]

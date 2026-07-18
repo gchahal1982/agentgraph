@@ -15,4 +15,4 @@ Endpoints:
 from agentgraph_server.app import AppState, create_app
 from agentgraph_server.registry import AgentRegistry, RegisteredAgent
 
-__all__ = ["create_app", "AppState", "AgentRegistry", "RegisteredAgent"]
+__all__ = ["AgentRegistry", "AppState", "RegisteredAgent", "create_app"]
