@@ -117,9 +117,9 @@ Because all eight gates must pass and none demonstrably does, the only defensibl
 | FastAPI body model | `RunBody` moved from inside `create_app()` to module scope, preserving fields and defaults | Implemented locally |
 | Duplicate exception cleanup | Malformed duplicate `except Exception` block in vertical registration removed | Implemented locally |
 | Lint-only cleanup | Export arrays, `__slots__`, and one blank line reordered/adjusted across local source files | Implemented locally; no capability change |
-| Runtime and server tests | 81 tests passed in each fresh Python 3.11 project invocation on the final branch head | Passed locally; retained CI artifact absent |
-| Lint and SOTA verification | Ruff passed; 42 SOTA contract tests passed; canonical strict offline verifier passed in portfolio-skeleton mode | Passed locally |
-| Independent reproduction | No retained clean-checkout report tied to the final commit | **Unverified** |
+| Runtime and server tests | Session-reported: 81 tests passed in each fresh Python 3.11 project invocation on the branch head | Session-reported; retained log/hash and independent reproduction **unverified** |
+| Lint and SOTA verification | Session-reported: Ruff passed; 42 SOTA contract tests passed; canonical strict offline verifier passed in portfolio-skeleton mode | Session-reported; retained log/hash and independent reproduction **unverified** |
+| Independent reproduction | No retained clean-checkout report tied to the final commit | **Pending / unverified** |
 
 ## 4. Competitive landscape at cutoff
 
