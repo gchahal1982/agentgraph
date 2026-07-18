@@ -6,6 +6,16 @@ authors = [{ name = "AgentGraph Authors" }]
 readme = "README.md"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.11"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "jsonschema==4.25.0",
+    "mypy==1.17.1",
+    "pytest==8.4.1",
+    "pytest-asyncio==0.24.0",
+    "ruff==0.12.4",
+]
 
 [tool.uv.workspace]
 members = [

@@ -49,6 +49,14 @@ class CheckpointStore(ABC):
     @abstractmethod
     async def list_for_thread(self, thread_id: str) -> list[Checkpoint]: ...
 
+    async def list_threads(self, *, limit: int = 100) -> list[dict[str, Any]]:
+        """Summarize threads when supported by the backend.
+
+        The default preserves compatibility with third-party stores written
+        before thread enumeration was added.
+        """
+        return []
+
     async def close(self) -> None:  # pragma: no cover - optional override
         return None
 
@@ -74,6 +82,13 @@ class InMemoryCheckpointStore(CheckpointStore):
 
     async def list_for_thread(self, thread_id: str) -> list[Checkpoint]:
         return list(self._by_thread.get(thread_id, []))
+
+    async def list_threads(self, *, limit: int = 100) -> list[dict[str, Any]]:
+        summaries = []
+        for thread_id, checkpoints in self._by_thread.items():
+            latest = checkpoints[-1]
+            summaries.append(_thread_summary(thread_id, checkpoints, latest))
+        return sorted(summaries, key=lambda item: item["updated_at"], reverse=True)[:limit]
 
 
 _CKPT_DDL = """
@@ -161,6 +176,42 @@ class SQLiteCheckpointStore(CheckpointStore):
         ).fetchall()
         return [_row_to_ckpt(r) for r in rows]
 
+    async def list_threads(self, *, limit: int = 100) -> list[dict[str, Any]]:
+        async with self._lock:
+            return await asyncio.to_thread(self._list_threads_sync, limit)
+
+    def _list_threads_sync(self, limit: int) -> list[dict[str, Any]]:
+        rows = self._conn.execute(
+            """
+            WITH latest AS (
+                SELECT thread_id, MAX(seq) AS latest_seq
+                FROM checkpoints
+                GROUP BY thread_id
+                ORDER BY latest_seq DESC
+                LIMIT ?
+            )
+            SELECT c.thread_id, c.run_id, c.node, c.created_at,
+                   COUNT(DISTINCT all_c.run_id), COUNT(all_c.id)
+            FROM latest
+            JOIN checkpoints c ON c.thread_id = latest.thread_id AND c.seq = latest.latest_seq
+            JOIN checkpoints all_c ON all_c.thread_id = latest.thread_id
+            GROUP BY c.thread_id, c.run_id, c.node, c.created_at, latest.latest_seq
+            ORDER BY latest.latest_seq DESC
+            """,
+            (limit,),
+        ).fetchall()
+        return [
+            {
+                "thread_id": row[0],
+                "latest_run_id": row[1],
+                "latest_node": row[2],
+                "updated_at": row[3],
+                "run_count": row[4],
+                "checkpoint_count": row[5],
+            }
+            for row in rows
+        ]
+
     async def close(self) -> None:
         async with self._lock:
             self._conn.close()
@@ -247,10 +298,62 @@ class PostgresCheckpointStore(CheckpointStore):
             )
         return [_pg_row_to_ckpt(r) for r in rows]
 
+    async def list_threads(self, *, limit: int = 100) -> list[dict[str, Any]]:
+        pool = await self._ensure_pool()
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                WITH latest AS (
+                    SELECT DISTINCT ON (thread_id)
+                           thread_id, run_id, node, created_at, seq
+                    FROM checkpoints
+                    ORDER BY thread_id, seq DESC
+                ), counts AS (
+                    SELECT thread_id, COUNT(DISTINCT run_id) AS run_count,
+                           COUNT(*) AS checkpoint_count
+                    FROM checkpoints
+                    GROUP BY thread_id
+                )
+                SELECT latest.thread_id, latest.run_id, latest.node, latest.created_at,
+                       counts.run_count, counts.checkpoint_count
+                FROM latest
+                JOIN counts USING (thread_id)
+                ORDER BY latest.seq DESC
+                LIMIT $1
+                """,
+                limit,
+            )
+        return [
+            {
+                "thread_id": row["thread_id"],
+                "latest_run_id": row["run_id"],
+                "latest_node": row["node"],
+                "updated_at": row["created_at"],
+                "run_count": row["run_count"],
+                "checkpoint_count": row["checkpoint_count"],
+            }
+            for row in rows
+        ]
+
     async def close(self) -> None:
         if self._pool is not None:
             await self._pool.close()
             self._pool = None
+
+
+def _thread_summary(
+    thread_id: str,
+    checkpoints: list[Checkpoint],
+    latest: Checkpoint,
+) -> dict[str, Any]:
+    return {
+        "thread_id": thread_id,
+        "latest_run_id": latest.run_id,
+        "latest_node": latest.node,
+        "updated_at": latest.created_at,
+        "run_count": len({checkpoint.run_id for checkpoint in checkpoints}),
+        "checkpoint_count": len(checkpoints),
+    }
 
 
 def _row_to_ckpt(r: tuple[Any, ...]) -> Checkpoint:

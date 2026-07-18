@@ -118,14 +118,15 @@ class Runtime:
             ) as s:
                 try:
                     result: NodeResult = await node.run(state)
-                except Exception as e:
-                    s.fail(f"{type(e).__name__}: {e}")
-                    state.error = f"{type(e).__name__}: {e}"
+                except Exception as exc:
+                    error_type = type(exc).__name__
+                    s.fail(error_type)
+                    state.error = error_type
                     await self._audit(
                         AuditAction.ERROR,
                         actor=node.name,
                         state=state,
-                        payload={"error": state.error},
+                        payload={"error_type": error_type},
                     )
                     raise
                 s.set("updates", list(result.updates.keys()))
@@ -138,21 +139,23 @@ class Runtime:
                 state.add_message(m)
 
             if result.error:
-                state.error = result.error
                 await self._audit(
                     AuditAction.ERROR,
                     actor=node.name,
                     state=state,
-                    payload={"error": result.error},
+                    payload={"error": "Node execution reported an error"},
                 )
+                # Swallowed errors are handled control flow. Never persist raw
+                # exception text; an unhandled NodeResult error is represented
+                # by a stable public-safe marker.
+                if not node.swallow_errors:
+                    state.error = "Node execution reported an error"
 
             # Determine the next node.
-            if result.end:
-                state.finished = True
-                break
-
             nxt: str | None
-            if result.goto:
+            if result.end:
+                nxt = END
+            elif result.goto:
                 nxt = result.goto[0]
             elif result.next is not None:
                 nxt = result.next
@@ -165,14 +168,15 @@ class Runtime:
                     cond: ConditionalEdge | None = graph.conditional_for(node.name)
                     if cond is not None:
                         nxt = await cond.decide(state)
-                    elif not succs and not cond:
+                    else:
                         # No successors; this is an end.
                         nxt = END
 
             state.next_node = nxt
             state.current_node = nxt
+            state.finished = nxt == END
 
-            # Take a checkpoint after the node.
+            # Take a checkpoint after every executed node, including terminal nodes.
             await self.config.checkpoint_store.save(
                 Checkpoint(
                     run_id=state.run.run_id,

@@ -29,6 +29,7 @@ from agentgraph_sales_ops.tools import (
     score_lead,
 )
 
+
 def _resolve_llm(llm: LLMConfig | None) -> LLMConfig:
     """Use the given LLM config, or resolve the process default (fail-fast)."""
     if llm is not None:

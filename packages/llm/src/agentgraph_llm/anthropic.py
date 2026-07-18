@@ -148,7 +148,7 @@ def _estimate_cost(model: str, prompt_tokens: int, completion_tokens: int) -> fl
 
 
 class _ToolCallShim:
-    __slots__ = ("id", "name", "arguments")
+    __slots__ = ("arguments", "id", "name")
 
     def __init__(self, id: str, name: str, arguments: dict) -> None:
         self.id = id
