@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 from agentgraph_llm.testing import register_test_provider, response, script
-from agentgraph_server.app import AppState, create_app
+from agentgraph_server.app import AppState, RunBody, create_app
 from fastapi.testclient import TestClient
 
 
@@ -18,6 +18,16 @@ def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
     app = create_app(state, register_verticals=True)
     with TestClient(app) as c:
         yield c
+
+
+def test_run_body_is_module_scoped_json_request_body(client: TestClient) -> None:
+    schema = client.app.openapi()
+    operation = schema["paths"]["/threads/{thread_id}/run"]["post"]
+    request_schema = operation["requestBody"]["content"]["application/json"]["schema"]
+
+    assert RunBody.__qualname__ == "RunBody"
+    assert request_schema == {"$ref": "#/components/schemas/RunBody"}
+    assert "body" not in {parameter["name"] for parameter in operation.get("parameters", [])}
 
 
 def test_healthz_is_public(client: TestClient) -> None:
