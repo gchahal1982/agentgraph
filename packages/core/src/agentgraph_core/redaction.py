@@ -7,7 +7,7 @@ from typing import Any
 from agentgraph_core.types import JSONValue
 
 _REDACTED = "[REDACTED]"
-_SENSITIVE_KEYS = {
+_SENSITIVE_KEY_SUFFIXES = (
     "authorization",
     "api_key",
     "apikey",
@@ -20,7 +20,7 @@ _SENSITIVE_KEYS = {
     "client_secret",
     "cookie",
     "session_id",
-}
+)
 _PRIVATE_KEY = re.compile(
     r"-----BEGIN(?: [A-Z0-9]+)? PRIVATE KEY-----.*?-----END(?: [A-Z0-9]+)? PRIVATE KEY-----",
     re.DOTALL,
@@ -42,7 +42,10 @@ _COOKIE = re.compile(r"(?i)\b(cookie\s*:\s*)[^\r\n]+")
 def redact_sensitive(value: Any, *, key: str | None = None) -> JSONValue:
     """Return a JSON-compatible copy with common credential forms removed."""
     normalized_key = key.lower().replace("-", "_") if key is not None else None
-    if normalized_key in _SENSITIVE_KEYS:
+    if normalized_key is not None and any(
+        normalized_key == suffix or normalized_key.endswith(f"_{suffix}")
+        for suffix in _SENSITIVE_KEY_SUFFIXES
+    ):
         return _REDACTED
     if isinstance(value, dict):
         return {str(k): redact_sensitive(v, key=str(k)) for k, v in value.items()}

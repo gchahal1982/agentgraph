@@ -153,6 +153,8 @@ def test_redact_sensitive_preserves_noncredential_metrics() -> None:
             "secretary": "available",
             "cookie_preferences": "essential",
             "access_token": "credential",
+            "openai_api_key": "provider-credential",
+            "X-API-Key": "header-credential",
         }
     )
     assert value == {
@@ -162,6 +164,8 @@ def test_redact_sensitive_preserves_noncredential_metrics() -> None:
         "secretary": "available",
         "cookie_preferences": "essential",
         "access_token": "[REDACTED]",
+        "openai_api_key": "[REDACTED]",
+        "X-API-Key": "[REDACTED]",
     }
 
 
