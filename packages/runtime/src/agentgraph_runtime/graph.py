@@ -19,7 +19,7 @@ class Graph(BaseModel):
     """Compiled graph ready for execution.
 
     The runtime walks nodes, applying static edges or invoking conditional
-    edges to find the next node. The graph is validated at compile time
+    edges to find the next node. The graph is `validate()`d at compile time
     to surface structural errors before deployment.
     """
 
@@ -30,7 +30,7 @@ class Graph(BaseModel):
 
     model_config = {"arbitrary_types_allowed": True}
 
-    def validate_graph(self) -> None:
+    def validate(self) -> None:  # type: ignore[override]
         if self.entrypoint not in self.nodes:
             raise GraphError(f"Entrypoint {self.entrypoint!r} is not a node")
         for e in self.static_edges:
@@ -134,5 +134,5 @@ class GraphBuilder:
             static_edges=list(self._static),
             conditional_edges=list(self._cond),
         )
-        graph.validate_graph()
+        graph.validate()
         return graph
